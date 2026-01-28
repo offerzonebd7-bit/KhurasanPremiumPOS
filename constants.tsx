@@ -4,9 +4,11 @@ import React from 'react';
 export const BRAND_INFO = {
   name: 'Manage Money',
   developer: 'Graphico Global',
-  website: 'https://graphicoglobal.com',
+  website: 'https://www.graphicoglobal.com',
   facebook: 'https://www.facebook.com/graphicoglobal',
   whatsapp: 'https://wa.me/8801930277399',
+  email: 'mailto:graphicoglobal@gmail.com',
+  telegram: 'https://t.me/GraphicoGlobal',
 };
 
 export const THEME_COLORS = [
@@ -95,7 +97,8 @@ export const TRANSLATIONS = {
     newPassword: 'New Password',
     recoverySuccess: 'Password recovered successfully!',
     recoveryError: 'Invalid Email or Secret Code',
-    themeColor: 'App Theme Color'
+    themeColor: 'App Theme Color',
+    switchAccount: 'Switch Account'
   },
   BN: {
     dashboard: 'ড্যাশবোর্ড',
@@ -159,6 +162,7 @@ export const TRANSLATIONS = {
     newPassword: 'নতুন পাসওয়ার্ড',
     recoverySuccess: 'পাসওয়ার্ড সফলভাবে পুনরুদ্ধার করা হয়েছে!',
     recoveryError: 'ভুল ইমেইল অথবা সিক্রেট কোড',
-    themeColor: 'অ্যাপ থিম কালার'
+    themeColor: 'অ্যাপ থিম কালার',
+    switchAccount: 'অ্যাকাউন্ট সুইচ'
   }
 };
