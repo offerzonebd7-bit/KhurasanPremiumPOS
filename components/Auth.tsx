@@ -2,18 +2,20 @@
 import React, { useState } from 'react';
 import { useApp } from '../App';
 import { BRAND_INFO } from '../constants';
-import { UserProfile } from '../types';
+import { UserProfile, UserRole } from '../types';
 
 const Auth: React.FC = () => {
   const { setUser, t, language, setLanguage, theme } = useApp();
   const [authMode, setAuthMode] = useState<'login' | 'signup' | 'forgot'>('login');
+  const [loginRole, setLoginRole] = useState<UserRole>('ADMIN');
   const [formData, setFormData] = useState({ 
     name: '', 
     email: '', 
     mobile: '',
     password: '', 
     confirmPassword: '', 
-    secretCode: '' 
+    secretCode: '',
+    modCode: ''
   });
   
   const [showPassword, setShowPassword] = useState(false);
@@ -56,21 +58,39 @@ const Auth: React.FC = () => {
         password: formData.password,
         secretCode: formData.secretCode,
         currency: '৳',
-        accounts: []
+        accounts: [],
+        moderators: []
       };
       
       allUsers.push(newUser);
       localStorage.setItem('mm_all_users', JSON.stringify(allUsers));
-      setUser(newUser);
+      setUser(newUser, 'ADMIN');
     } else if (authMode === 'login') {
-      const existingUser = allUsers.find(u => u.email === formData.email && u.password === formData.password);
-      if (existingUser) {
-        setUser(existingUser);
-      } else {
-        if (allUsers.length === 0) {
-           setError(language === 'EN' ? 'No users found. Please Sign Up first!' : 'কোনো ইউজার পাওয়া যায়নি। দয়া করে আগে সাইন আপ করুন!');
+      if (loginRole === 'ADMIN') {
+        const existingUser = allUsers.find(u => u.email === formData.email && u.password === formData.password);
+        if (existingUser) {
+          setUser(existingUser, 'ADMIN');
         } else {
-           setError(language === 'EN' ? 'Invalid Email or Password' : 'ভুল ইমেইল অথবা পাসওয়ার্ড');
+          setError(language === 'EN' ? 'Invalid Email or Password' : 'ভুল ইমেইল অথবা পাসওয়ার্ড');
+        }
+      } else {
+        // Multi-Moderator Login Search
+        let foundAdmin: UserProfile | null = null;
+        let foundModName: string = '';
+
+        for (const admin of allUsers) {
+          const mod = admin.moderators?.find(m => m.email === formData.email && m.code === formData.modCode);
+          if (mod) {
+            foundAdmin = admin;
+            foundModName = mod.name;
+            break;
+          }
+        }
+
+        if (foundAdmin) {
+          setUser(foundAdmin, 'MODERATOR', foundModName);
+        } else {
+          setError(language === 'EN' ? 'Invalid Moderator Email or Code' : 'ভুল মডারেটর ইমেইল অথবা কোড');
         }
       }
     } else if (authMode === 'forgot') {
@@ -107,6 +127,13 @@ const Auth: React.FC = () => {
           <p className="mt-3 text-blue-200 text-[9px] font-black uppercase tracking-[0.4em]">{BRAND_INFO.developer}</p>
         </div>
 
+        {authMode === 'login' && (
+          <div className="flex p-1 bg-gray-50 dark:bg-gray-800 border-b dark:border-gray-700">
+             <button onClick={() => setLoginRole('ADMIN')} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-3xl transition-all ${loginRole === 'ADMIN' ? 'bg-white dark:bg-gray-700 shadow-md text-blue-600' : 'text-gray-400'}`}>{t('admin')}</button>
+             <button onClick={() => setLoginRole('MODERATOR')} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-3xl transition-all ${loginRole === 'MODERATOR' ? 'bg-white dark:bg-gray-700 shadow-md text-blue-600' : 'text-gray-400'}`}>{t('moderator')}</button>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="p-8 space-y-4">
           {error && <div className="p-4 text-[10px] font-black text-red-600 bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 uppercase tracking-widest">{error}</div>}
           {success && <div className="p-4 text-[10px] font-black text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-200 uppercase tracking-widest">{success}</div>}
@@ -120,12 +147,19 @@ const Auth: React.FC = () => {
           )}
 
           <div className="space-y-1">
-            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Email</label>
+            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">{loginRole === 'MODERATOR' ? t('moderatorEmail') : 'Email'}</label>
             <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-gray-800 dark:bg-gray-800 outline-none font-bold focus:border-blue-500 transition-all text-sm" placeholder="email@example.com" required />
           </div>
 
-          {authMode !== 'forgot' && (
+          {authMode === 'login' && loginRole === 'MODERATOR' ? (
+             <div className="space-y-1 relative">
+                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('moderatorCode')}</label>
+                <input type={showSecretCode ? "text" : "password"} value={formData.modCode} onChange={(e) => setFormData({ ...formData, modCode: e.target.value })}
+                  className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-gray-800 dark:bg-gray-800 outline-none font-bold focus:border-blue-500 transition-all text-sm pr-12" placeholder="User Code" required />
+                <EyeIcon show={showSecretCode} toggle={() => setShowSecretCode(!showSecretCode)} />
+             </div>
+          ) : authMode !== 'forgot' && (
             <div className="space-y-1 relative">
               <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('password')}</label>
               <input type={showPassword ? "text" : "password"} value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -158,15 +192,17 @@ const Auth: React.FC = () => {
           </button>
 
           <div className="text-center pt-4 space-y-3">
-             {authMode === 'login' && (
+             {authMode === 'login' && loginRole === 'ADMIN' && (
                <button type="button" onClick={() => setAuthMode('forgot')} className="text-[9px] font-black text-rose-500 uppercase tracking-widest hover:underline block w-full">
                  {t('forgotPassword')}
                </button>
              )}
              
-             <button type="button" onClick={() => { setAuthMode(authMode === 'login' ? 'signup' : 'login'); setError(''); setSuccess(''); }} className="text-[10px] font-black text-gray-500 hover:text-blue-600 transition-colors uppercase tracking-[0.2em]">
-               {authMode === 'login' ? (language === 'EN' ? "New? Sign Up" : "নতুন? একাউন্ট খুলুন") : (language === 'EN' ? t('backToLogin') : t('backToLogin'))}
-             </button>
+             {loginRole === 'ADMIN' && (
+               <button type="button" onClick={() => { setAuthMode(authMode === 'login' ? 'signup' : 'login'); setError(''); setSuccess(''); }} className="text-[10px] font-black text-gray-500 hover:text-blue-600 transition-colors uppercase tracking-[0.2em]">
+                 {authMode === 'login' ? (language === 'EN' ? "New? Sign Up" : "নতুন? একাউন্ট খুলুন") : (language === 'EN' ? t('backToLogin') : t('backToLogin'))}
+               </button>
+             )}
           </div>
         </form>
       </div>

@@ -6,7 +6,7 @@ import { UserProfile } from '../types';
 import Calculator from './Calculator';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { setView, view, t, theme, setTheme, setLanguage, language, user, setUser } = useApp();
+  const { setView, view, t, theme, setTheme, setLanguage, language, user, setUser, role, moderatorName } = useApp();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCalcOpen, setIsCalcOpen] = useState(false);
   const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false);
@@ -23,6 +23,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     { id: 'reports', label: t('reports'), icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
     { id: 'settings', label: t('settings'), icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
   ];
+
+  const displayName = role === 'MODERATOR' ? moderatorName : user?.name;
+  const displayEmail = role === 'MODERATOR' ? `${t('moderator')} @ ${user?.name}` : user?.email;
 
   const contactIcons = [
     { id: 'web', icon: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z', url: BRAND_INFO.website, color: '#4169E1' },
@@ -50,8 +53,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                  {allUsers.map(u => (
                     <button 
                        key={u.id}
-                       onClick={() => { setUser(u); setIsSwitchModalOpen(false); }}
-                       className={`flex items-center w-full p-4 rounded-2xl border-2 transition-all group ${user?.id === u.id ? 'border-primary bg-primary/5' : 'border-gray-100 dark:border-gray-700 hover:border-primary/50'}`}
+                       onClick={() => { setUser(u, 'ADMIN'); setIsSwitchModalOpen(false); }}
+                       className={`flex items-center w-full p-4 rounded-2xl border-2 transition-all group ${user?.id === u.id && role === 'ADMIN' ? 'border-primary bg-primary/5' : 'border-gray-100 dark:border-gray-700 hover:border-primary/50'}`}
                     >
                        <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-white text-xl font-black mr-4 shadow-md overflow-hidden shrink-0">
                           {u.profilePic ? <img src={u.profilePic} className="w-full h-full object-cover" /> : u.name.charAt(0).toUpperCase()}
@@ -60,12 +63,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                           <p className="font-black text-sm truncate dark:text-white">{u.name}</p>
                           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">{u.email}</p>
                        </div>
-                       {user?.id === u.id && <div className="w-3 h-3 bg-primary rounded-full animate-pulse"></div>}
+                       {user?.id === u.id && role === 'ADMIN' && <div className="w-3 h-3 bg-primary rounded-full animate-pulse"></div>}
                     </button>
                  ))}
                  
                  <button 
-                    onClick={() => { setUser(null); setIsSwitchModalOpen(false); }}
+                    onClick={() => { setUser(null, 'ADMIN'); setIsSwitchModalOpen(false); }}
                     className="flex items-center justify-center w-full p-5 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-500 font-black text-xs uppercase tracking-widest hover:bg-gray-50 transition-all"
                  >
                     <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>
@@ -99,14 +102,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         <div className="absolute bottom-0 w-full p-4 border-t dark:border-gray-700">
           <div className="flex items-center px-4 py-4 mb-4 bg-gray-50 dark:bg-gray-700/50 rounded-3xl border dark:border-gray-600 shadow-sm">
             <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center text-white text-lg font-black mr-3 shadow-lg overflow-hidden shrink-0">
-              {user?.profilePic ? <img src={user.profilePic} alt="P" className="w-full h-full object-cover" /> : user?.name.charAt(0).toUpperCase()}
+              {user?.profilePic && role !== 'MODERATOR' ? <img src={user.profilePic} alt="P" className="w-full h-full object-cover" /> : displayName?.charAt(0).toUpperCase()}
             </div>
             <div className="overflow-hidden">
-              <p className="text-xs font-black truncate dark:text-gray-100">{user?.name}</p>
-              <p className="text-[9px] font-bold text-gray-400 truncate uppercase tracking-tighter">{user?.mobile}</p>
+              <p className="text-xs font-black truncate dark:text-gray-100">{displayName}</p>
+              <p className="text-[9px] font-bold text-gray-400 truncate uppercase tracking-tighter">{role === 'MODERATOR' ? `${t('moderator')} Role` : user?.mobile}</p>
             </div>
           </div>
-          <button onClick={() => setUser(null)} className="flex items-center w-full px-5 py-3 text-sm font-black text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-2xl transition-all">
+          <button onClick={() => setUser(null, 'ADMIN')} className="flex items-center w-full px-5 py-3 text-sm font-black text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-2xl transition-all">
             <svg className="w-5 h-5 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
             {t('logout')}
           </button>

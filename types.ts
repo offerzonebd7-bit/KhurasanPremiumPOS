@@ -1,5 +1,13 @@
 
 export type TransactionType = 'INCOME' | 'EXPENSE' | 'DUE';
+export type UserRole = 'ADMIN' | 'MODERATOR';
+
+export interface Moderator {
+  id: string;
+  name: string;
+  email: string;
+  code: string;
+}
 
 export interface Transaction {
   id: string;
@@ -23,6 +31,7 @@ export interface UserProfile {
   profilePic?: string;
   primaryColor?: string;
   accounts: string[];
+  moderators: Moderator[];
 }
 
 export type Language = 'EN' | 'BN';
@@ -30,6 +39,8 @@ export type Theme = 'light' | 'dark';
 
 export interface AppState {
   user: UserProfile | null;
+  role: UserRole;
+  moderatorName?: string;
   transactions: Transaction[];
   language: Language;
   theme: Theme;

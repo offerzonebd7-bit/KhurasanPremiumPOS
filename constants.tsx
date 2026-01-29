@@ -98,7 +98,16 @@ export const TRANSLATIONS = {
     recoverySuccess: 'Password recovered successfully!',
     recoveryError: 'Invalid Email or Secret Code',
     themeColor: 'App Theme Color',
-    switchAccount: 'Switch Account'
+    switchAccount: 'Switch Account',
+    role: 'Select Role',
+    admin: 'Admin',
+    moderator: 'Moderator',
+    moderatorSettings: 'Moderator Access Settings',
+    moderatorEmail: 'Moderator Email',
+    moderatorCode: 'Moderator User Code',
+    insufficientPermissions: 'You do not have permission to delete records.',
+    resetSecurityTitle: 'Confirm System Reset',
+    enterAdminSecret: 'Enter Admin Secret Code to confirm reset'
   },
   BN: {
     dashboard: 'ড্যাশবোর্ড',
@@ -163,6 +172,15 @@ export const TRANSLATIONS = {
     recoverySuccess: 'পাসওয়ার্ড সফলভাবে পুনরুদ্ধার করা হয়েছে!',
     recoveryError: 'ভুল ইমেইল অথবা সিক্রেট কোড',
     themeColor: 'অ্যাপ থিম কালার',
-    switchAccount: 'অ্যাকাউন্ট সুইচ'
+    switchAccount: 'অ্যাকাউন্ট সুইচ',
+    role: 'রোল সিলেক্ট করুন',
+    admin: 'এডমিন',
+    moderator: 'মডারেটর',
+    moderatorSettings: 'মডারেটর এক্সেস সেটিংস',
+    moderatorEmail: 'মডারেটর ইমেইল',
+    moderatorCode: 'মডারেটর ইউজার কোড',
+    insufficientPermissions: 'আপনার এই লেনদেনটি ডিলিট করার অনুমতি নেই।',
+    resetSecurityTitle: 'সিস্টেম রিসেট নিশ্চিত করুন',
+    enterAdminSecret: 'রিসেট করতে এডমিন সিক্রেট কোড দিন'
   }
 };

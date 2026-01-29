@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo, createContext, useContext } from 'react';
 import { TRANSLATIONS, BRAND_INFO } from './constants';
-import { Transaction, UserProfile, Language, Theme, TransactionType } from './types';
+import { Transaction, UserProfile, Language, Theme, TransactionType, UserRole } from './types';
 import Auth from './components/Auth';
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
@@ -11,7 +11,9 @@ import Settings from './components/Settings';
 
 interface AppContextType {
   user: UserProfile | null;
-  setUser: (u: UserProfile | null) => void;
+  role: UserRole;
+  moderatorName: string;
+  setUser: (u: UserProfile | null, r?: UserRole, modName?: string) => void;
   transactions: Transaction[];
   addTransaction: (t: Omit<Transaction, 'id' | 'createdAt' | 'userId'>) => void;
   updateTransaction: (id: string, updated: Partial<Transaction>) => void;
@@ -23,20 +25,28 @@ interface AppContextType {
   view: 'dashboard' | 'transactions' | 'reports' | 'settings' | 'profile';
   setView: (v: any) => void;
   t: (key: string) => string;
-  resetApp: () => void;
+  resetApp: (code: string) => boolean;
   locationName: string;
 }
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export default function App() {
-  const [user, setUser] = useState<UserProfile | null>(() => {
+  const [user, setUserState] = useState<UserProfile | null>(() => {
     try {
       const saved = localStorage.getItem('mm_active_user');
       return saved ? JSON.parse(saved) : null;
     } catch {
       return null;
     }
+  });
+
+  const [role, setRole] = useState<UserRole>(() => {
+    return (localStorage.getItem('mm_active_role') as UserRole) || 'ADMIN';
+  });
+
+  const [moderatorName, setModeratorName] = useState<string>(() => {
+    return localStorage.getItem('mm_moderator_name') || '';
   });
 
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
@@ -61,9 +71,23 @@ export default function App() {
   const [locationName, setLocationName] = useState('Chittagong, Bangladesh');
   const [view, setView] = useState<'dashboard' | 'transactions' | 'reports' | 'settings' | 'profile'>('dashboard');
 
+  const setUser = (u: UserProfile | null, r: UserRole = 'ADMIN', modName: string = '') => {
+    setUserState(u);
+    setRole(r);
+    setModeratorName(modName);
+    if (u) {
+      localStorage.setItem('mm_active_user', JSON.stringify(u));
+      localStorage.setItem('mm_active_role', r);
+      localStorage.setItem('mm_moderator_name', modName);
+    } else {
+      localStorage.removeItem('mm_active_user');
+      localStorage.removeItem('mm_active_role');
+      localStorage.removeItem('mm_moderator_name');
+    }
+  };
+
   useEffect(() => {
     if (user) {
-      localStorage.setItem('mm_active_user', JSON.stringify(user));
       const savedTx = localStorage.getItem(`mm_tx_${user.id}`);
       try {
         setTransactions(savedTx ? JSON.parse(savedTx) : []);
@@ -73,7 +97,6 @@ export default function App() {
       const color = user.primaryColor || '#4169E1';
       document.documentElement.style.setProperty('--primary-color', color);
     } else {
-      localStorage.removeItem('mm_active_user');
       setTransactions([]);
       document.documentElement.style.setProperty('--primary-color', '#4169E1');
     }
@@ -116,20 +139,32 @@ export default function App() {
   };
 
   const deleteTransaction = (id: string) => {
+    if (role === 'MODERATOR') {
+      alert(t('insufficientPermissions'));
+      return;
+    }
     if (confirm(language === 'EN' ? 'Are you sure?' : 'আপনি কি নিশ্চিত?')) {
       setTransactions(prev => prev.filter(tx => tx.id !== id));
     }
   };
 
-  const resetApp = () => {
-    if (confirm(language === 'EN' ? 'Reset all data for this account?' : 'এই অ্যাকাউন্টের সব তথ্য মুছে ফেলবেন?')) {
+  const resetApp = (code: string): boolean => {
+    if (role === 'MODERATOR') {
+      alert(t('insufficientPermissions'));
+      return false;
+    }
+    if (code === user?.secretCode) {
       setTransactions([]);
       localStorage.removeItem(`mm_tx_${user?.id}`);
+      return true;
+    } else {
+      alert(language === 'EN' ? 'Invalid Admin Secret Code!' : 'ভুল এডমিন সিক্রেট কোড!');
+      return false;
     }
   };
 
   const contextValue = useMemo(() => ({
-    user, setUser,
+    user, role, moderatorName, setUser,
     transactions, addTransaction, updateTransaction, deleteTransaction,
     language, setLanguage,
     theme, setTheme,
@@ -137,7 +172,7 @@ export default function App() {
     t,
     resetApp,
     locationName
-  }), [user, transactions, language, theme, view, locationName]);
+  }), [user, role, moderatorName, transactions, language, theme, view, locationName]);
 
   return (
     <AppContext.Provider value={contextValue}>
