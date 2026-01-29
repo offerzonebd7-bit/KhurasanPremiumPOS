@@ -1,13 +1,21 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../App';
 import { BRAND_INFO } from '../constants';
+import { UserProfile } from '../types';
 import Calculator from './Calculator';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { setView, view, t, theme, setTheme, setLanguage, language, user, setUser } = useApp();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCalcOpen, setIsCalcOpen] = useState(false);
+  const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false);
+  const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
+
+  useEffect(() => {
+    const users = JSON.parse(localStorage.getItem('mm_all_users') || '[]');
+    setAllUsers(users);
+  }, [isSwitchModalOpen]);
 
   const navItems = [
     { id: 'dashboard', label: t('dashboard'), icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z' },
@@ -27,6 +35,46 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <div className="flex h-screen overflow-hidden print:h-auto print:overflow-visible">
       <Calculator isOpen={isCalcOpen} onClose={() => setIsCalcOpen(false)} />
+
+      {/* Switch Account Modal */}
+      {isSwitchModalOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-gray-900/60 backdrop-blur-md animate-in fade-in duration-300">
+           <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-[40px] shadow-2xl overflow-hidden border-4 border-primary/10">
+              <div className="p-8 bg-primary text-white flex justify-between items-center">
+                 <h2 className="text-xl font-black uppercase tracking-tighter">{t('switchAccount')}</h2>
+                 <button onClick={() => setIsSwitchModalOpen(false)} className="p-2 hover:bg-white/20 rounded-xl transition-all">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
+                 </button>
+              </div>
+              <div className="p-8 space-y-4 max-h-[60vh] overflow-y-auto">
+                 {allUsers.map(u => (
+                    <button 
+                       key={u.id}
+                       onClick={() => { setUser(u); setIsSwitchModalOpen(false); }}
+                       className={`flex items-center w-full p-4 rounded-2xl border-2 transition-all group ${user?.id === u.id ? 'border-primary bg-primary/5' : 'border-gray-100 dark:border-gray-700 hover:border-primary/50'}`}
+                    >
+                       <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-white text-xl font-black mr-4 shadow-md overflow-hidden shrink-0">
+                          {u.profilePic ? <img src={u.profilePic} className="w-full h-full object-cover" /> : u.name.charAt(0).toUpperCase()}
+                       </div>
+                       <div className="text-left flex-1 overflow-hidden">
+                          <p className="font-black text-sm truncate dark:text-white">{u.name}</p>
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">{u.email}</p>
+                       </div>
+                       {user?.id === u.id && <div className="w-3 h-3 bg-primary rounded-full animate-pulse"></div>}
+                    </button>
+                 ))}
+                 
+                 <button 
+                    onClick={() => { setUser(null); setIsSwitchModalOpen(false); }}
+                    className="flex items-center justify-center w-full p-5 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-500 font-black text-xs uppercase tracking-widest hover:bg-gray-50 transition-all"
+                 >
+                    <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>
+                    {t('signup')} / Add New Shop
+                 </button>
+              </div>
+           </div>
+        </div>
+      )}
 
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 transition-transform duration-300 transform bg-white dark:bg-gray-800 border-r dark:border-gray-700 md:translate-x-0 md:static md:inset-0 print:hidden ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex items-center justify-between h-16 px-6 border-b dark:border-gray-700">
@@ -74,7 +122,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <h1 className="text-lg font-black dark:text-white uppercase tracking-tighter leading-none">{t(view)}</h1>
           </div>
           <div className="flex items-center space-x-2">
-             <button onClick={() => setUser(null)} className="p-2.5 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white rounded-xl transition-all shadow-sm" title={t('switchAccount')}>
+             <button onClick={() => setIsSwitchModalOpen(true)} className="p-2.5 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white rounded-xl transition-all shadow-sm" title={t('switchAccount')}>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
              </button>
              <button onClick={() => setLanguage(language === 'EN' ? 'BN' : 'EN')} className="p-2.5 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-xl transition-all shadow-sm" title={t('language')}>

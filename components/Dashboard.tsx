@@ -67,21 +67,55 @@ const Dashboard: React.FC = () => {
     setEditingTx(null);
   };
 
-  const handleExcelExport = () => {
-    const headers = "Description,Category,Type,Amount,Date\n";
-    const rows = todayRecords.map(tx => `${tx.description},${tx.category},${tx.type},${tx.amount},${tx.date}`).join("\n");
-    const blob = new Blob([headers + rows], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Statement_${todayStr}.csv`;
-    a.click();
-  };
-
   const currencySymbol = user?.currency || '৳';
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-10">
+      {/* Edit Transaction Modal */}
+      {editingTx && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-gray-900/60 backdrop-blur-md animate-in zoom-in duration-300">
+           <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-[40px] shadow-2xl overflow-hidden border-4 border-primary/10">
+              <div className="p-8 bg-primary text-white flex justify-between items-center">
+                 <h2 className="text-xl font-black uppercase tracking-tighter">{t('update')}</h2>
+                 <button onClick={() => setEditingTx(null)} className="p-2 hover:bg-white/20 rounded-xl transition-all">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
+                 </button>
+              </div>
+              <form onSubmit={handleUpdate} className="p-8 space-y-4">
+                 <div className="flex gap-2 mb-4">
+                    {['INCOME', 'EXPENSE', 'DUE'].map(type => (
+                       <button 
+                          key={type}
+                          type="button" 
+                          onClick={() => setEditingTx({...editingTx, type: type as TransactionType})}
+                          className={`flex-1 py-3 rounded-xl font-black text-[8px] uppercase tracking-widest border-2 transition-all ${editingTx.type === type ? 'bg-primary border-primary text-white shadow-lg' : 'bg-transparent border-gray-100 dark:border-gray-700 text-gray-400'}`}
+                       >
+                          {t(type.toLowerCase())}
+                       </button>
+                    ))}
+                 </div>
+                 <div className="space-y-4">
+                    <div className="relative">
+                       <input type="text" value={editingTx.description} onChange={(e) => setEditingTx({...editingTx, description: e.target.value})} className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-700 border-2 dark:border-gray-600 rounded-xl outline-none font-bold text-xs" required />
+                       <label className="absolute left-5 -top-2 bg-white dark:bg-gray-800 px-2 text-[8px] font-black text-primary uppercase tracking-widest">{t('description')}</label>
+                    </div>
+                    <div className="relative">
+                       <input type="number" value={editingTx.amount} onChange={(e) => setEditingTx({...editingTx, amount: parseFloat(e.target.value)})} className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-700 border-2 dark:border-gray-600 rounded-xl outline-none font-bold text-xs" required />
+                       <label className="absolute left-5 -top-2 bg-white dark:bg-gray-800 px-2 text-[8px] font-black text-primary uppercase tracking-widest">{t('amount')}</label>
+                    </div>
+                    <div className="relative">
+                       <input type="text" value={editingTx.category} onChange={(e) => setEditingTx({...editingTx, category: e.target.value})} className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-700 border-2 dark:border-gray-600 rounded-xl outline-none font-bold text-xs" />
+                       <label className="absolute left-5 -top-2 bg-white dark:bg-gray-800 px-2 text-[8px] font-black text-primary uppercase tracking-widest">{t('category')}</label>
+                    </div>
+                 </div>
+                 <button type="submit" className="w-full py-4 bg-primary text-white font-black rounded-2xl shadow-xl hover:opacity-90 transition-all uppercase tracking-widest text-[10px] mt-4">
+                    {t('save')}
+                 </button>
+              </form>
+           </div>
+        </div>
+      )}
+
       <section className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border dark:border-gray-700 relative overflow-hidden">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
           <div className="flex items-center gap-5">
@@ -199,9 +233,17 @@ const Dashboard: React.FC = () => {
                        </div>
                     </div>
                     <div className="flex items-center gap-4">
-                       <p className={`text-sm font-black ${tx.type === 'INCOME' ? 'text-emerald-500' : tx.type === 'EXPENSE' ? 'text-rose-500' : 'text-amber-500'}`}>
+                       <p className={`text-sm font-black ${tx.type === 'INCOME' ? 'text-emerald-500' : tx.type === 'EXPENSE' ? 'text-rose-600' : 'text-amber-500'}`}>
                           {currencySymbol}{tx.amount.toLocaleString()}
                        </p>
+                       <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => setEditingTx(tx)} className="p-2 text-primary hover:bg-primary/10 rounded-lg">
+                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                          </button>
+                          <button onClick={() => deleteTransaction(tx.id)} className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg">
+                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                          </button>
+                       </div>
                     </div>
                  </div>
               ))
