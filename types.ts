@@ -8,6 +8,7 @@ export interface Moderator {
   name: string;
   email: string;
   code: string;
+  profilePic?: string;
 }
 
 export interface Product {

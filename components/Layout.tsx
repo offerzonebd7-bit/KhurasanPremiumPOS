@@ -28,6 +28,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   const displayName = role === 'MODERATOR' ? moderatorName : user?.name;
   
+  // Find moderator profile pic if role is MODERATOR
+  const currentProfilePic = role === 'MODERATOR' 
+    ? user?.moderators?.find(m => m.name === moderatorName)?.profilePic || ''
+    : user?.profilePic || '';
+
   const contactIcons = [
     { id: 'web', icon: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z', url: BRAND_INFO.website, color: '#4169E1' },
     { id: 'mail', icon: 'M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z', url: BRAND_INFO.email, color: '#D44638' },
@@ -108,7 +113,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </div>
           <div className="flex items-center px-4 py-3 mb-2 bg-gray-50 dark:bg-gray-800 rounded-xl border dark:border-gray-700">
             <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center text-white text-md font-black mr-3 shadow-lg overflow-hidden shrink-0">
-              {user?.profilePic && role !== 'MODERATOR' ? <img src={user.profilePic} alt="P" className="w-full h-full object-cover" /> : displayName?.charAt(0).toUpperCase()}
+              {currentProfilePic ? <img src={currentProfilePic} alt="P" className="w-full h-full object-cover" /> : displayName?.charAt(0).toUpperCase()}
             </div>
             <div className="overflow-hidden">
               <p className="text-[10px] font-black truncate dark:text-gray-100">{displayName}</p>
