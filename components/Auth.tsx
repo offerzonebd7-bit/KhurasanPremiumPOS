@@ -161,22 +161,22 @@ const Auth: React.FC = () => {
 
           {authMode === 'signup' && (
             <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-5 py-4 rounded-lg border-2 border-gray-100 dark:border-gray-800 dark:bg-gray-800 outline-none font-bold focus:border-blue-500 transition-all text-sm" placeholder="Full Name" required />
+              className="w-full px-5 py-4 rounded-lg border-2 border-gray-100 dark:border-gray-800 dark:bg-gray-800 outline-none font-bold focus:border-blue-500 transition-all text-sm border-b-4 border-black/10" placeholder="Full Name" required />
           )}
 
           <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            className="w-full px-5 py-4 rounded-lg border-2 border-gray-100 dark:border-gray-800 dark:bg-gray-800 outline-none font-bold focus:border-blue-500 transition-all text-sm" placeholder="Gmail Address" required />
+            className="w-full px-5 py-4 rounded-lg border-2 border-gray-100 dark:border-gray-800 dark:bg-gray-800 outline-none font-bold focus:border-blue-500 transition-all text-sm border-b-4 border-black/10" placeholder="Gmail Address" required />
 
           {authMode === 'login' && loginRole === 'MODERATOR' ? (
             <div className="relative">
               <input type={showPassword ? "text" : "password"} value={formData.modCode} onChange={(e) => setFormData({ ...formData, modCode: e.target.value })}
-                className="w-full px-5 py-4 rounded-lg border-2 border-gray-100 dark:border-gray-800 dark:bg-gray-800 outline-none font-bold focus:border-blue-500 transition-all text-sm pr-12" placeholder="Moderator User Code" required />
+                className="w-full px-5 py-4 rounded-lg border-2 border-gray-100 dark:border-gray-800 dark:bg-gray-800 outline-none font-bold focus:border-blue-500 transition-all text-sm pr-12 border-b-4 border-black/10" placeholder="Moderator User Code" required />
               <EyeIcon show={showPassword} toggle={() => setShowPassword(!showPassword)} />
             </div>
           ) : (authMode !== 'forgot' && (
             <div className="relative">
               <input type={showPassword ? "text" : "password"} value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-5 py-4 rounded-lg border-2 border-gray-100 dark:border-gray-800 dark:bg-gray-800 outline-none font-bold focus:border-blue-500 transition-all text-sm pr-12" placeholder={authMode === 'reset' ? "New Password" : "Password"} required />
+                className="w-full px-5 py-4 rounded-lg border-2 border-gray-100 dark:border-gray-800 dark:bg-gray-800 outline-none font-bold focus:border-blue-500 transition-all text-sm pr-12 border-b-4 border-black/10" placeholder={authMode === 'reset' ? "New Password" : "Password"} required />
               <EyeIcon show={showPassword} toggle={() => setShowPassword(!showPassword)} />
             </div>
           ))}
@@ -186,13 +186,13 @@ const Auth: React.FC = () => {
               {(authMode === 'signup' || authMode === 'reset') && (
                 <div className="relative">
                   <input type={showConfirmPassword ? "text" : "password"} value={formData.confirmPassword} onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                    className="w-full px-5 py-4 rounded-lg border-2 border-gray-100 dark:border-gray-800 dark:bg-gray-800 outline-none font-bold focus:border-blue-500 transition-all text-sm pr-12" placeholder="Confirm Password" required />
+                    className="w-full px-5 py-4 rounded-lg border-2 border-gray-100 dark:border-gray-800 dark:bg-gray-800 outline-none font-bold focus:border-blue-500 transition-all text-sm pr-12 border-b-4 border-black/10" placeholder="Confirm Password" required />
                   <EyeIcon show={showConfirmPassword} toggle={() => setShowConfirmPassword(!showConfirmPassword)} />
                 </div>
               )}
               {authMode !== 'reset' && (
                 <input type="text" value={formData.secretCode} onChange={(e) => setFormData({ ...formData, secretCode: e.target.value })}
-                  className="w-full px-5 py-4 rounded-lg border-2 border-gray-100 dark:border-gray-800 dark:bg-gray-800 outline-none font-bold focus:border-blue-500 transition-all text-sm" placeholder="Secret Code (PIN)" required />
+                  className="w-full px-5 py-4 rounded-lg border-2 border-gray-100 dark:border-gray-800 dark:bg-gray-800 outline-none font-bold focus:border-blue-500 transition-all text-sm border-b-4 border-black/10" placeholder="Secret Code (PIN)" required />
               )}
             </div>
           )}

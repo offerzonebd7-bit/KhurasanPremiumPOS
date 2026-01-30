@@ -23,6 +23,15 @@ const Settings: React.FC = () => {
   const [resetCode, setResetCode] = useState('');
   const [showResetModal, setShowResetModal] = useState(false);
 
+  const saveGlobalUser = (updatedUser: any) => {
+    const allUsers = JSON.parse(localStorage.getItem('mm_all_users') || '[]');
+    const userIndex = allUsers.findIndex((u: any) => u.id === updatedUser.id);
+    if (userIndex !== -1) {
+      allUsers[userIndex] = updatedUser;
+      localStorage.setItem('mm_all_users', JSON.stringify(allUsers));
+    }
+  };
+
   const handleProfilePicChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && user) {
@@ -47,13 +56,11 @@ const Settings: React.FC = () => {
     }
   };
 
-  const saveGlobalUser = (updatedUser: any) => {
-    const allUsers = JSON.parse(localStorage.getItem('mm_all_users') || '[]');
-    const userIndex = allUsers.findIndex((u: any) => u.id === updatedUser.id);
-    if (userIndex !== -1) {
-      allUsers[userIndex] = updatedUser;
-      localStorage.setItem('mm_all_users', JSON.stringify(allUsers));
-    }
+  const handleSetPrimaryColor = (color: string) => {
+    if (!user || role === 'MODERATOR') return;
+    const updatedUser = { ...user, primaryColor: color };
+    setUser(updatedUser, role, moderatorName);
+    saveGlobalUser(updatedUser);
   };
 
   const handleUpdateProfile = (e: React.FormEvent) => {
@@ -67,13 +74,6 @@ const Settings: React.FC = () => {
       setIsUpdating(false);
       alert(t('save') + ' Successful!');
     }, 500);
-  };
-
-  const handleSetPrimaryColor = (color: string) => {
-    if (!user || role === 'MODERATOR') return;
-    const updatedUser = { ...user, primaryColor: color };
-    setUser(updatedUser, role, moderatorName);
-    saveGlobalUser(updatedUser);
   };
 
   const handleAddModerator = () => {
@@ -185,8 +185,8 @@ const Settings: React.FC = () => {
            </div>
            <form onSubmit={handleUpdateProfile} className="flex-1 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 <input type="text" value={profileData.name} onChange={(e) => setProfileData({...profileData, name: e.target.value})} disabled={role === 'MODERATOR'} className="px-5 py-3.5 bg-gray-50 dark:bg-gray-700 border-2 dark:border-gray-600 rounded-xl outline-none font-bold text-xs" placeholder="Shop Name" />
-                 <select value={profileData.currency} onChange={(e) => setProfileData({...profileData, currency: e.target.value})} disabled={role === 'MODERATOR'} className="px-5 py-3.5 bg-gray-50 dark:bg-gray-700 border-2 dark:border-gray-600 rounded-xl outline-none font-black text-xs">
+                 <input type="text" value={profileData.name} onChange={(e) => setProfileData({...profileData, name: e.target.value})} disabled={role === 'MODERATOR'} className="px-5 py-3.5 bg-gray-50 dark:bg-gray-700 border-2 dark:border-gray-600 rounded-xl outline-none font-bold text-xs border-b-4 border-black/10" placeholder="Shop Name" />
+                 <select value={profileData.currency} onChange={(e) => setProfileData({...profileData, currency: e.target.value})} disabled={role === 'MODERATOR'} className="px-5 py-3.5 bg-gray-50 dark:bg-gray-700 border-2 dark:border-gray-600 rounded-xl outline-none font-black text-xs border-b-4 border-black/10">
                     {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.name} ({c.code})</option>)}
                  </select>
               </div>
@@ -214,15 +214,15 @@ const Settings: React.FC = () => {
                    <input type="file" ref={modFileInputRef} onChange={handleModPicChange} accept="image/*" className="hidden" />
                 </div>
                 <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
-                   <input type="text" value={newMod.name} onChange={(e) => setNewMod({...newMod, name: e.target.value})} placeholder="Mod Name" className="px-4 py-3 bg-white dark:bg-gray-800 border-2 rounded-lg text-xs outline-none focus:border-blue-500" />
-                   <input type="email" value={newMod.email} onChange={(e) => setNewMod({...newMod, email: e.target.value})} placeholder="Mod Email" className="px-4 py-3 bg-white dark:bg-gray-800 border-2 rounded-lg text-xs outline-none focus:border-blue-500" />
-                   <input type="text" value={newMod.code} onChange={(e) => setNewMod({...newMod, code: e.target.value})} placeholder="User Code" className="px-4 py-3 bg-white dark:bg-gray-800 border-2 rounded-lg text-xs outline-none focus:border-blue-500" />
-                   <button onClick={handleAddModerator} className="bg-blue-600 text-white font-black rounded-lg text-[10px] uppercase tracking-widest border-b-4 border-blue-800">Add Moderator</button>
+                   <input type="text" value={newMod.name} onChange={(e) => setNewMod({...newMod, name: e.target.value})} placeholder="Mod Name" className="px-4 py-3 bg-white dark:bg-gray-800 border-2 rounded-lg text-xs outline-none focus:border-blue-500 border-b-4 border-black/10" />
+                   <input type="email" value={newMod.email} onChange={(e) => setNewMod({...newMod, email: e.target.value})} placeholder="Mod Email" className="px-4 py-3 bg-white dark:bg-gray-800 border-2 rounded-lg text-xs outline-none focus:border-blue-500 border-b-4 border-black/10" />
+                   <input type="text" value={newMod.code} onChange={(e) => setNewMod({...newMod, code: e.target.value})} placeholder="User Code" className="px-4 py-3 bg-white dark:bg-gray-800 border-2 rounded-lg text-xs outline-none focus:border-blue-500 border-b-4 border-black/10" />
+                   <button onClick={handleAddModerator} className="bg-blue-600 text-white font-black rounded-lg text-[10px] uppercase tracking-widest border-b-4 border-blue-800 py-3">Add Moderator</button>
                 </div>
              </div>
              <div className="space-y-2">
                 {user?.moderators?.map(mod => (
-                   <div key={mod.id} className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg border-2 border-blue-100 dark:border-blue-900/50 shadow-sm">
+                   <div key={mod.id} className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg border-2 border-blue-100 dark:border-blue-900/50 shadow-sm border-b-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg bg-blue-50 overflow-hidden shrink-0">
                            {mod.profilePic ? <img src={mod.profilePic} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center font-black text-blue-300">{mod.name.charAt(0)}</div>}
@@ -247,11 +247,11 @@ const Settings: React.FC = () => {
             {t('backupRestore')}
          </h3>
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <button onClick={handleExport} className="flex items-center justify-center gap-3 p-5 bg-emerald-500 text-white font-black rounded-xl uppercase tracking-widest text-[10px] border-b-4 border-emerald-700">
+            <button onClick={handleExport} className="flex items-center justify-center gap-3 p-5 bg-emerald-500 text-white font-black rounded-xl uppercase tracking-widest text-[10px] border-b-4 border-emerald-700 active:scale-95 transition-all">
                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                {t('exportData')}
             </button>
-            <label className="flex items-center justify-center gap-3 p-5 bg-blue-500 text-white font-black rounded-xl uppercase tracking-widest text-[10px] border-b-4 border-blue-700 cursor-pointer">
+            <label className="flex items-center justify-center gap-3 p-5 bg-blue-500 text-white font-black rounded-xl uppercase tracking-widest text-[10px] border-b-4 border-blue-700 cursor-pointer active:scale-95 transition-all">
                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0l-4 4m4-4v12" /></svg>
                {t('importData')}
                <input type="file" onChange={handleImport} accept=".json" className="hidden" />
@@ -298,7 +298,7 @@ const Settings: React.FC = () => {
             {!isPasswordVisible ? (
               <div className="flex gap-4">
                 <input type="password" value={verifySecret} onChange={(e) => setVerifySecret(e.target.value)}
-                  className="flex-1 px-5 py-3.5 bg-white dark:bg-gray-800 border-2 dark:border-gray-600 rounded-xl outline-none font-black tracking-widest" placeholder="Enter Secret PIN" />
+                  className="flex-1 px-5 py-3.5 bg-white dark:bg-gray-800 border-2 dark:border-gray-600 rounded-xl outline-none font-black tracking-widest border-b-4 border-black/10" placeholder="Enter Secret PIN" />
                 <button onClick={() => { if(verifySecret === user?.secretCode) setIsPasswordVisible(true); else alert('Wrong PIN'); }} className="px-8 bg-rose-600 text-white font-black rounded-lg uppercase tracking-widest text-[9px] border-b-4 border-rose-800">{t('verify')}</button>
               </div>
             ) : (
