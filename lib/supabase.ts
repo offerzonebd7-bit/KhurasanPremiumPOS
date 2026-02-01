@@ -1,13 +1,18 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-// Accessing environment variables directly for better compatibility
-const supabaseUrl = process.env.SUPABASE_URL || '';
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || '';
+/**
+ * For Vite projects, environment variables MUST be accessed via import.meta.env.
+ * Names must be prefixed with VITE_ in the Vercel dashboard.
+ */
+const env = (import.meta as any).env;
+
+const supabaseUrl = env?.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = env?.VITE_SUPABASE_ANON_KEY || '';
 
 export const hasSupabaseConfig = !!(supabaseUrl && supabaseAnonKey);
 
-// If keys are missing, we export null to prevent immediate crash
+// Create the client only if config is available
 export const supabase = hasSupabaseConfig 
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null as any;

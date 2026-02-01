@@ -101,7 +101,7 @@ export default function App() {
     const initApp = async () => {
       try {
         if (!hasSupabaseConfig) {
-          setError("Supabase URL or Key is missing in environment variables.");
+          setError("VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY is missing from environment.");
           setLoading(false);
           return;
         }
@@ -218,6 +218,7 @@ export default function App() {
   }
 
   if (error) {
+    const env = (import.meta as any).env;
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-rose-50 p-10 text-center">
         <div className="w-20 h-20 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mb-6">
@@ -225,7 +226,24 @@ export default function App() {
         </div>
         <h2 className="text-2xl font-black text-rose-900 mb-2 uppercase tracking-tighter">Connection Error</h2>
         <p className="text-rose-600 font-bold text-sm max-w-xs">{error}</p>
-        <p className="mt-6 text-[10px] font-black text-rose-400 uppercase tracking-widest">Please check your Environment Variables in Vercel/Local Settings.</p>
+        
+        <div className="mt-8 p-4 bg-white/60 rounded-2xl text-[9px] font-black text-left border border-rose-200">
+           <p className="mb-2 text-gray-400 uppercase tracking-widest">Debug Console:</p>
+           <div className="flex justify-between gap-4">
+              <span>VITE_SUPABASE_URL:</span>
+              <span className={env?.VITE_SUPABASE_URL ? "text-emerald-500" : "text-rose-500"}>
+                 {env?.VITE_SUPABASE_URL ? "FOUND ✅" : "NOT FOUND ❌"}
+              </span>
+           </div>
+           <div className="flex justify-between gap-4 mt-1">
+              <span>VITE_SUPABASE_ANON_KEY:</span>
+              <span className={env?.VITE_SUPABASE_ANON_KEY ? "text-emerald-500" : "text-rose-500"}>
+                 {env?.VITE_SUPABASE_ANON_KEY ? "FOUND ✅" : "NOT FOUND ❌"}
+              </span>
+           </div>
+        </div>
+
+        <p className="mt-6 text-[10px] font-black text-rose-400 uppercase tracking-widest">Please ensure your Vercel settings are correct and click Redeploy.</p>
       </div>
     );
   }
