@@ -12,11 +12,11 @@ interface SaleItem {
   color: string;
   size: string;
   buyPrice?: number;
-  category?: string; // Track category for detailed reporting
+  category?: string;
 }
 
 const ProductSale: React.FC = () => {
-  const { user, setUser, t, language, addTransaction, syncUserProfile, role, moderatorName, addSaleRecord } = useApp();
+  const { user, setUser, t, language, addTransaction, syncUserProfile, role, moderatorName } = useApp();
   const [customerInfo, setCustomerInfo] = useState({ name: '', mobile: '' });
   const [items, setItems] = useState<SaleItem[]>([{ id: Math.random().toString(), productName: '', qty: 0, price: 0, color: '', size: '' }]);
   const [paidAmount, setPaidAmount] = useState<string>('');
@@ -69,20 +69,20 @@ const ProductSale: React.FC = () => {
   const currentDue = Math.max(0, totalAmount - currentPaid);
 
   const handleFinishSale = async () => {
+    if (!user) return;
     if (items.some(i => !i.productId || Number(i.qty) <= 0)) {
-       alert(language === 'EN' ? 'Please select product, variant and valid quantity' : 'দয়া করে পণ্য এবং সঠিক পরিমাণ সিলেক্ট করুন');
+       alert(language === 'EN' ? 'Please select product and valid quantity' : 'দয়া করে পণ্য এবং সঠিক পরিমাণ সিলেক্ট করুন');
        return;
     }
 
     const invId = 'INV-' + Date.now().toString().slice(-6);
     setLastInvoiceId(invId);
-    
     const today = new Date().toISOString().split('T')[0];
     const customerLabel = customerInfo.name || (language === 'EN' ? 'Walk-in' : 'নগদ কাস্টমার');
     const commonDesc = `${invId} - ${customerLabel}`;
     
-    // --- Detailed Sale Records for "Today Sales Summary" ---
-    const saleRecords: SaleRecord[] = items.map(item => ({
+    // 1. Prepare Sales Records
+    const newSaleEntries: SaleRecord[] = items.map(item => ({
       id: 'S-' + Math.random().toString(36).substr(2, 9),
       invoiceId: invId,
       date: today,
@@ -93,9 +93,26 @@ const ProductSale: React.FC = () => {
       buyPrice: item.buyPrice || 0,
       profit: (item.price - (item.buyPrice || 0)) * item.qty
     }));
-    await addSaleRecord(saleRecords);
 
-    // --- Financial Transactions for Dashboard/Reports ---
+    // 2. Prepare Updated Product List (Stock Reduction)
+    const updatedProducts = user.products.map(p => {
+      const soldItems = items.filter(item => item.productId === p.id);
+      const totalSoldQty = soldItems.reduce((acc, curr) => acc + curr.qty, 0);
+      if (totalSoldQty > 0) return { ...p, stockQuantity: Math.max(0, p.stockQuantity - totalSoldQty) };
+      return p;
+    });
+
+    // 3. Sync everything to User Profile in ONE call to avoid overwriting
+    const updatedUser = { 
+      ...user, 
+      products: updatedProducts, 
+      sales: [...(user.sales || []), ...newSaleEntries] 
+    };
+    
+    await syncUserProfile(updatedUser);
+    setUser(updatedUser, role, moderatorName);
+
+    // 4. Financial Transactions
     if (currentPaid > 0) {
       await addTransaction({ 
         amount: currentPaid, 
@@ -114,20 +131,8 @@ const ProductSale: React.FC = () => {
         type: 'DUE', 
         category: 'Sales Dues', 
         date: today,
-        profit: currentPaid > 0 ? 0 : totalProfit
+        profit: 0
       });
-    }
-
-    // --- STOCK REDUCTION ---
-    if (user) {
-      const updatedProducts = (user.products || []).map(p => {
-        const sold = items.find(item => item.productId === p.id);
-        if (sold) return { ...p, stockQuantity: Math.max(0, p.stockQuantity - sold.qty) };
-        return p;
-      });
-      const updatedUser = { ...user, products: updatedProducts };
-      await syncUserProfile(updatedUser);
-      setUser(updatedUser, role, moderatorName);
     }
     
     setShowInvoice(true);
@@ -141,16 +146,16 @@ const ProductSale: React.FC = () => {
         <h2 className="text-3xl font-black text-primary italic mb-6">{user?.name}</h2>
         <p className="text-xs font-black uppercase tracking-widest text-gray-400">Invoice: {lastInvoiceId}</p>
         <div className="mt-4 flex flex-col gap-1">
-           <p className="text-sm font-black dark:text-gray-900">Customer: {customerInfo.name || 'Walk-in'}</p>
+           <p className="text-sm font-black text-gray-900">Customer: {customerInfo.name || 'Walk-in'}</p>
            <p className="text-xs font-bold text-gray-500">Mobile: {customerInfo.mobile || 'N/A'}</p>
         </div>
         <table className="w-full text-left mb-10 mt-8">
            <thead className="border-b-2"><tr><th className="py-2 text-[10px] font-black uppercase">Product Details</th><th className="py-2 text-right text-[10px] font-black uppercase">Amt</th></tr></thead>
            <tbody className="divide-y">
               {items.map(i => (
-                 <tr key={i.id} className="text-sm font-bold">
+                 <tr key={i.id} className="text-sm font-bold text-gray-800">
                     <td className="py-4">
-                       <p className="text-md font-black text-gray-900">{i.productName}</p>
+                       <p className="text-md font-black">{i.productName}</p>
                        <p className="text-[9px] text-gray-400 uppercase tracking-widest mt-1">{i.color} | {i.size} | {i.qty} PCS x {i.price}</p>
                     </td>
                     <td className="py-4 text-right font-black">{currencySymbol}{(i.qty * i.price).toLocaleString()}</td>
@@ -220,12 +225,10 @@ const ProductSale: React.FC = () => {
                           <input type="number" value={item.qty === 0 ? '' : item.qty} onChange={e => updateItem(item.id, {qty: parseInt(e.target.value) || 0})} className="px-4 py-3 bg-white dark:bg-gray-800 border-2 dark:border-gray-700 rounded-xl font-black text-xs text-center focus:border-primary outline-none" placeholder="0" />
                        </div>
                        <div className="flex flex-col gap-1">
-                          <label className="text-[8px] font-black uppercase text-gray-400 ml-2">Total for Item</label>
+                          <label className="text-[8px] font-black uppercase text-gray-400 ml-2">Total</label>
                           <div className="px-4 py-3 bg-primary/10 text-primary font-black text-center rounded-xl flex items-center justify-center text-xs">
                              {currencySymbol}{(item.qty * item.price).toLocaleString()}
                           </div>
-                          {/* Unit price input for bargaining */}
-                          <input type="number" value={item.price} onChange={e => updateItem(item.id, {price: parseFloat(e.target.value) || 0})} className="mt-1 px-4 py-1 text-[8px] bg-gray-100 dark:bg-gray-800 rounded border border-dashed dark:border-gray-700 text-center" placeholder="Price" />
                        </div>
                     </div>
                  </div>
