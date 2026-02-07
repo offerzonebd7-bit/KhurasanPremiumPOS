@@ -16,14 +16,14 @@ interface SaleItem {
 const ProductSale: React.FC = () => {
   const { user, setUser, t, language, addTransaction, syncUserProfile, role, moderatorName } = useApp();
   const [customerInfo, setCustomerInfo] = useState({ name: '', mobile: '' });
-  const [items, setItems] = useState<SaleItem[]>([{ id: Math.random().toString(), productName: '', qty: 1, price: 0, color: '', size: '' }]);
+  const [items, setItems] = useState<SaleItem[]>([{ id: Math.random().toString(), productName: '', qty: 0, price: 0, color: '', size: '' }]);
   const [paidAmount, setPaidAmount] = useState<string>('');
   const [showInvoice, setShowInvoice] = useState(false);
   const [lastInvoiceId, setLastInvoiceId] = useState('');
   const [suggestions, setSuggestions] = useState<{index: number, list: string[]}>({index: -1, list: []});
 
   const handleAddItem = () => {
-    setItems([...items, { id: Math.random().toString(), productName: '', qty: 1, price: 0, color: '', size: '' }]);
+    setItems([...items, { id: Math.random().toString(), productName: '', qty: 0, price: 0, color: '', size: '' }]);
   };
 
   const handleRemoveItem = (id: string) => {
@@ -60,22 +60,38 @@ const ProductSale: React.FC = () => {
   const currentDue = Math.max(0, totalAmount - currentPaid);
 
   const handleFinishSale = async () => {
-    if (items.some(i => !i.productId || i.price <= 0)) {
-       alert(language === 'EN' ? 'Please select valid product, size and color' : 'সঠিক পণ্য, সাইজ এবং কালার সিলেক্ট করুন');
+    if (items.some(i => !i.productId || i.price < 0 || i.qty <= 0)) {
+       alert(language === 'EN' ? 'Please fill valid product, size, color and quantity' : 'সঠিক পণ্য, সাইজ, কালার এবং পরিমাণ দিন');
        return;
     }
 
     const invId = 'INV-' + Date.now().toString().slice(-6);
     setLastInvoiceId(invId);
+    
+    // INTEGRATION WITH DASHBOARD - Ensure this is called
     const commonDesc = `${invId} - ${customerInfo.name || 'Walk-in'} (${items.length} items)`;
     
     if (currentPaid > 0) {
-      addTransaction({ amount: currentPaid, description: commonDesc, type: 'INCOME', category: 'Clothing Sales', date: new Date().toISOString().split('T')[0] });
+      addTransaction({ 
+        amount: currentPaid, 
+        description: commonDesc, 
+        type: 'INCOME', 
+        category: 'Product Sales', 
+        date: new Date().toISOString().split('T')[0] 
+      });
     }
+    
     if (currentDue > 0) {
-      addTransaction({ amount: currentDue, description: `${commonDesc} (Due)`, type: 'DUE', category: 'Sales Dues', date: new Date().toISOString().split('T')[0] });
+      addTransaction({ 
+        amount: currentDue, 
+        description: `${commonDesc} (Due)`, 
+        type: 'DUE', 
+        category: 'Sales Dues', 
+        date: new Date().toISOString().split('T')[0] 
+      });
     }
 
+    // STOCK REDUCTION
     if (user) {
       const updatedProducts = (user.products || []).map(p => {
         const sold = items.find(item => item.productId === p.id);
@@ -96,29 +112,32 @@ const ProductSale: React.FC = () => {
       <div className="max-w-2xl mx-auto p-6 bg-white rounded-[40px] shadow-2xl border-t-[10px] border-primary pb-20">
         <h2 className="text-3xl font-black text-primary italic mb-6">{user?.name}</h2>
         <p className="text-xs font-black uppercase tracking-widest text-gray-400">Invoice: {lastInvoiceId}</p>
-        <p className="text-xs font-black uppercase text-gray-400 mb-8">Customer: {customerInfo.name || 'Walk-in'}</p>
-        <table className="w-full text-left mb-10">
-           <thead className="border-b-2"><tr><th className="py-2 text-[10px] font-black uppercase">Item</th><th className="py-2 text-right text-[10px] font-black uppercase">Amt</th></tr></thead>
+        <div className="mt-4 flex flex-col gap-1">
+           <p className="text-sm font-black dark:text-gray-900">Customer: {customerInfo.name || 'Walk-in'}</p>
+           <p className="text-xs font-bold text-gray-500">Mobile: {customerInfo.mobile || 'N/A'}</p>
+        </div>
+        <table className="w-full text-left mb-10 mt-8">
+           <thead className="border-b-2"><tr><th className="py-2 text-[10px] font-black uppercase">Product Details</th><th className="py-2 text-right text-[10px] font-black uppercase">Amt</th></tr></thead>
            <tbody className="divide-y">
               {items.map(i => (
                  <tr key={i.id} className="text-sm font-bold">
                     <td className="py-4">
-                       <p>{i.productName}</p>
-                       <p className="text-[9px] text-gray-400 uppercase">{i.color} | {i.size} (x{i.qty})</p>
+                       <p className="text-md font-black text-gray-900">{i.productName}</p>
+                       <p className="text-[9px] text-gray-400 uppercase tracking-widest mt-1">{i.color} | {i.size} | {i.qty} PCS x {i.price}</p>
                     </td>
-                    <td className="py-4 text-right">{currencySymbol}{(i.qty * i.price).toLocaleString()}</td>
+                    <td className="py-4 text-right font-black">{currencySymbol}{(i.qty * i.price).toLocaleString()}</td>
                  </tr>
               ))}
            </tbody>
         </table>
         <div className="border-t-4 border-primary pt-6">
-           <div className="flex justify-between font-black text-2xl"><span>Total</span><span>{currencySymbol}{totalAmount.toLocaleString()}</span></div>
-           <div className="flex justify-between font-black text-emerald-500 mt-2"><span>Paid</span><span>{currencySymbol}{currentPaid.toLocaleString()}</span></div>
-           {currentDue > 0 && <div className="flex justify-between font-black text-rose-500 mt-2"><span>Due</span><span>{currencySymbol}{currentDue.toLocaleString()}</span></div>}
+           <div className="flex justify-between font-black text-xl text-gray-400"><span>Grand Total</span><span>{currencySymbol}{totalAmount.toLocaleString()}</span></div>
+           <div className="flex justify-between font-black text-2xl text-emerald-500 mt-2"><span>Paid Amount</span><span>{currencySymbol}{currentPaid.toLocaleString()}</span></div>
+           {currentDue > 0 && <div className="flex justify-between font-black text-rose-500 mt-2"><span>Balance Due</span><span>{currencySymbol}{currentDue.toLocaleString()}</span></div>}
         </div>
         <div className="mt-10 flex gap-4 no-print">
-           <button onClick={() => window.print()} className="flex-1 py-4 bg-primary text-white font-black rounded-2xl uppercase tracking-widest text-[11px]">Print</button>
-           <button onClick={() => {setShowInvoice(false); setItems([{ id: Math.random().toString(), productName: '', qty: 1, price: 0, color: '', size: '' }]); setPaidAmount('');}} className="flex-1 py-4 bg-gray-100 text-gray-500 font-black rounded-2xl uppercase tracking-widest text-[11px]">New</button>
+           <button onClick={() => window.print()} className="flex-1 py-4 bg-primary text-white font-black rounded-2xl uppercase tracking-widest text-[11px] border-b-4 border-black/20">Print Invoice</button>
+           <button onClick={() => {setShowInvoice(false); setItems([{ id: Math.random().toString(), productName: '', qty: 0, price: 0, color: '', size: '' }]); setPaidAmount(''); setCustomerInfo({name:'', mobile:''});}} className="flex-1 py-4 bg-gray-100 text-gray-500 font-black rounded-2xl uppercase tracking-widest text-[11px] border-b-4 border-gray-300">New Sale</button>
         </div>
       </div>
     );
@@ -133,7 +152,7 @@ const ProductSale: React.FC = () => {
         
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
            <input type="text" value={customerInfo.name} onChange={e => setCustomerInfo({...customerInfo, name: e.target.value})} className="px-6 py-4 bg-gray-50 dark:bg-gray-900 border-2 dark:border-gray-700 rounded-2xl font-bold text-xs" placeholder="Customer Name" />
-           <input type="text" value={customerInfo.mobile} onChange={e => setCustomerInfo({...customerInfo, mobile: e.target.value})} className="px-6 py-4 bg-gray-50 dark:bg-gray-900 border-2 dark:border-gray-700 rounded-2xl font-bold text-xs" placeholder="Mobile" />
+           <input type="text" value={customerInfo.mobile} onChange={e => setCustomerInfo({...customerInfo, mobile: e.target.value})} className="px-6 py-4 bg-gray-50 dark:bg-gray-900 border-2 dark:border-gray-700 rounded-2xl font-bold text-xs" placeholder="Mobile Number" />
         </div>
 
         <div className="space-y-4">
@@ -143,7 +162,7 @@ const ProductSale: React.FC = () => {
               const availableColors = Array.from(new Set(variants.filter(v => !item.size || v.size === item.size).map(v => v.color)));
 
               return (
-                 <div key={item.id} className="relative bg-gray-50 dark:bg-gray-900/50 p-4 rounded-[30px] border-2 border-transparent hover:border-primary/20 transition-all flex flex-col gap-4">
+                 <div key={item.id} className="relative bg-gray-50 dark:bg-gray-900/50 p-6 rounded-[30px] border-2 border-transparent hover:border-primary/20 transition-all flex flex-col gap-4">
                     <div className="flex gap-4">
                        <div className="flex-1 relative">
                           <input type="text" value={item.productName} onChange={e => handleNameSearch(e.target.value, idx)} className="w-full px-5 py-4 bg-white dark:bg-gray-800 border-2 dark:border-gray-700 rounded-2xl font-black text-xs" placeholder="Type Product Name..." />
@@ -153,7 +172,7 @@ const ProductSale: React.FC = () => {
                             </div>
                           )}
                        </div>
-                       <button onClick={() => handleRemoveItem(item.id)} className="p-4 bg-rose-50 text-rose-500 rounded-2xl"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6" /></svg></button>
+                       <button onClick={() => handleRemoveItem(item.id)} className="p-4 bg-rose-50 text-rose-500 rounded-2xl hover:bg-rose-500 hover:text-white transition-all"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6" /></svg></button>
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -168,32 +187,41 @@ const ProductSale: React.FC = () => {
                           <option value="">Color</option>
                           {availableColors.map(c => <option key={c} value={c}>{c}</option>)}
                        </select>
-                       <input type="number" value={item.qty} onChange={e => updateItem(item.id, {qty: parseInt(e.target.value) || 1})} className="px-4 py-3 bg-white dark:bg-gray-800 border-2 dark:border-gray-700 rounded-xl font-bold text-xs text-center" placeholder="Qty" />
-                       <div className="px-4 py-3 bg-primary/10 text-primary font-black text-center rounded-xl flex items-center justify-center text-xs">
-                          {currencySymbol}{(item.qty * item.price).toLocaleString()}
+                       <div className="flex flex-col gap-1">
+                          <label className="text-[8px] font-black uppercase text-gray-400 ml-2">Qty</label>
+                          <input type="number" value={item.qty === 0 ? '' : item.qty} onChange={e => updateItem(item.id, {qty: parseInt(e.target.value) || 0})} className="px-4 py-3 bg-white dark:bg-gray-800 border-2 dark:border-gray-700 rounded-xl font-bold text-xs text-center" placeholder="0" />
+                       </div>
+                       <div className="flex flex-col gap-1">
+                          <label className="text-[8px] font-black uppercase text-gray-400 ml-2">Sale Price</label>
+                          <input type="number" value={item.price === 0 ? '' : item.price} onChange={e => updateItem(item.id, {price: parseFloat(e.target.value) || 0})} className="px-4 py-3 bg-white dark:bg-gray-800 border-2 border-primary/20 rounded-xl font-black text-xs text-emerald-500" placeholder="0.00" />
                        </div>
                     </div>
                  </div>
               );
            })}
-           <button onClick={handleAddItem} className="w-full py-4 bg-gray-100 text-gray-500 font-black rounded-2xl uppercase text-[10px] tracking-widest">+ Add Item</button>
+           <button onClick={handleAddItem} className="w-full py-4 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 font-black rounded-2xl uppercase text-[10px] tracking-widest border-2 border-dashed border-gray-300 dark:border-gray-600">+ Add Another Item</button>
         </div>
 
         <div className="mt-10 pt-10 border-t-2 grid grid-cols-1 md:grid-cols-2 gap-10 items-end">
            <div className="space-y-4">
-              <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-4">Cash Received</label>
-              <input type="number" value={paidAmount} onChange={e => setPaidAmount(e.target.value)} className="w-full px-8 py-6 bg-emerald-50 dark:bg-emerald-950/20 border-2 border-emerald-100 rounded-[30px] font-black text-3xl text-emerald-600 outline-none" placeholder="0.00" />
+              <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-4">Cash Received (Payment)</label>
+              <div className="relative">
+                 <input type="number" value={paidAmount} onChange={e => setPaidAmount(e.target.value)} className="w-full px-8 py-6 bg-emerald-50 dark:bg-emerald-950/20 border-2 border-emerald-100 dark:border-emerald-900/50 rounded-[30px] font-black text-3xl text-emerald-600 outline-none" placeholder="0.00" />
+                 <span className="absolute right-8 top-1/2 -translate-y-1/2 text-2xl font-black text-emerald-200">{currencySymbol}</span>
+              </div>
            </div>
-           <div className="p-8 bg-gray-50 dark:bg-gray-900 rounded-[30px] border-2">
-              <div className="flex justify-between items-center opacity-50 mb-2 font-black uppercase text-[10px]">Total: {currencySymbol}{totalAmount.toLocaleString()}</div>
-              <div className={`flex justify-between items-center font-black ${currentDue > 0 ? 'text-rose-600' : 'text-emerald-500'}`}>
-                 <span className="uppercase text-[10px]">Net Due</span>
+           <div className="p-8 bg-gray-50 dark:bg-gray-900 rounded-[30px] border-2 dark:border-gray-700">
+              <div className="flex justify-between items-center opacity-50 mb-2 font-black uppercase text-[10px] dark:text-white">Total Bill: {currencySymbol}{totalAmount.toLocaleString()}</div>
+              <div className={`flex justify-between items-center font-black ${currentDue > 0 ? 'text-rose-600' : 'text-emerald-500 animate-pulse'}`}>
+                 <span className="uppercase text-[10px]">{currentDue > 0 ? 'Remaining Due' : 'Fully Paid'}</span>
                  <span className="text-4xl tracking-tighter">{currencySymbol}{currentDue.toLocaleString()}</span>
               </div>
            </div>
         </div>
 
-        <button onClick={handleFinishSale} className="w-full mt-10 py-6 bg-primary text-white font-black rounded-[30px] uppercase tracking-[0.5em] text-[12px] border-b-[8px] border-black/20 shadow-2xl">Finish Sale</button>
+        <button onClick={handleFinishSale} className="w-full mt-10 py-6 bg-primary text-white font-black rounded-[30px] uppercase tracking-[0.5em] text-[12px] border-b-[8px] border-black/20 shadow-2xl active:scale-95 transition-all">
+           Complete Sale & Add to Dashboard
+        </button>
       </section>
     </div>
   );

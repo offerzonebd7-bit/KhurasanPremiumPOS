@@ -11,6 +11,7 @@ const ProductStock: React.FC = () => {
     selectedColors: [] as string[], 
     selectedSizes: [] as string[],
     customColor: '', 
+    customSize: '',
     stockQuantity: '', buyPrice: '', sellPrice: '' 
   });
   const [searchTerm, setSearchTerm] = useState('');
@@ -74,7 +75,12 @@ const ProductStock: React.FC = () => {
       finalColors.push(formData.customColor.trim());
     }
 
-    if (finalColors.length === 0 || formData.selectedSizes.length === 0) {
+    let finalSizes = [...formData.selectedSizes];
+    if (formData.customSize.trim()) {
+      finalSizes.push(formData.customSize.trim());
+    }
+
+    if (finalColors.length === 0 || finalSizes.length === 0) {
       alert(language === 'EN' ? 'Select at least one color and one size' : 'অন্তত একটি কালার এবং একটি সাইজ সিলেক্ট করুন');
       return;
     }
@@ -84,7 +90,7 @@ const ProductStock: React.FC = () => {
     const baseCode = formData.code || ('C-' + Date.now().toString().slice(-6));
     
     finalColors.forEach(color => {
-      formData.selectedSizes.forEach(size => {
+      finalSizes.forEach(size => {
         newProducts.push({
           id: 'P-' + Math.random().toString(36).substr(2, 9),
           name: formData.name,
@@ -106,7 +112,7 @@ const ProductStock: React.FC = () => {
     
     setFormData({ 
       name: '', code: '', category: '', selectedColors: [], selectedSizes: [], 
-      customColor: '', stockQuantity: '', buyPrice: '', sellPrice: '' 
+      customColor: '', customSize: '', stockQuantity: '', buyPrice: '', sellPrice: '' 
     });
     setIsSyncing(false);
   };
@@ -201,12 +207,13 @@ const ProductStock: React.FC = () => {
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Select Sizes</label>
                 <button type="button" onClick={selectAllSizes} className="text-[9px] font-black text-primary uppercase">Select All</button>
              </div>
-             <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-10 gap-2 p-5 bg-gray-50 dark:bg-gray-900/50 rounded-3xl border-2 border-dashed dark:border-gray-700">
+             <div className="flex flex-wrap gap-2 p-5 bg-gray-50 dark:bg-gray-900/50 rounded-3xl border-2 border-dashed dark:border-gray-700">
                 {CLOTHING_SIZES.map(size => (
-                   <button key={size} type="button" onClick={() => toggleSize(size)} className={`py-3 rounded-xl text-[10px] font-black transition-all border-2 ${formData.selectedSizes.includes(size) ? 'bg-amber-500 border-amber-500 text-white shadow-lg' : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 text-gray-400'}`}>
+                   <button key={size} type="button" onClick={() => toggleSize(size)} className={`px-3 py-2 rounded-xl text-[10px] font-black transition-all border-2 ${formData.selectedSizes.includes(size) ? 'bg-amber-500 border-amber-500 text-white shadow-lg' : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 text-gray-400'}`}>
                       {size}
                    </button>
                 ))}
+                <input type="text" placeholder="Custom Size" value={formData.customSize} onChange={e => setFormData({...formData, customSize: e.target.value})} className="px-4 py-2 bg-white dark:bg-gray-800 border-2 dark:border-gray-700 rounded-xl outline-none font-bold text-[10px] w-40 focus:border-primary transition-all" />
              </div>
           </div>
 
