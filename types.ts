@@ -69,6 +69,8 @@ export interface UserProfile {
   password: string;
   secretCode: string;
   currency: string;
+  slogan?: string;
+  description?: string;
   profilePic?: string;
   primaryColor?: string;
   accounts: string[];
