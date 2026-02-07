@@ -34,14 +34,25 @@ export const CURRENCIES = [
   { code: 'S$', name: 'SGD' },
 ];
 
+export const CLOTHING_SIZES = [
+  "20", "22", "24", "26", "28", "30", "32", "34", "36", "38", "40", "42", "44", "46", 
+  "48.L", "48.XL", "50.M", "50.L", "50.XL", "50.XXL", "52.M", "52.L", "52.XL", "52.XXL", 
+  "54.M", "54.L", "54.XL", "54.XXL", "56.M", "56.L", "56.XL", "56.XXL", "58.L", "58.XL", 
+  "58.XXL", "60.XL", "60.XXL", "62.XL", "62.XXL"
+];
+
+export const DEFAULT_COLORS = [
+  "Black", "White", "Red", "Blue", "Navy Blue", "Green", "Olive", "Yellow", "Maroon", "Grey"
+];
+
 export const TRANSLATIONS = {
   EN: {
     dashboard: 'Dashboard',
     transactions: 'Transactions',
     reports: 'Reports',
     settings: 'Settings',
-    productStock: 'Product Stock',
-    productSale: 'Product Sale',
+    productStock: 'Inventory',
+    productSale: 'POS / Sale',
     partners: 'Partners',
     income: 'Income',
     expense: 'Expense',
@@ -53,7 +64,7 @@ export const TRANSLATIONS = {
     date: 'Date',
     category: 'Category',
     history: 'Transaction History',
-    search: 'Search Records...',
+    search: 'Search...',
     filterDate: 'Filter Date',
     exportPDF: 'Download PDF',
     exportExcel: 'Download Excel',
@@ -113,8 +124,8 @@ export const TRANSLATIONS = {
     enterAdminSecret: 'Enter Admin Secret Code to confirm reset',
     productName: 'Product Name',
     productCode: 'Product Code',
-    buyPrice: 'Buy Price',
-    sellPrice: 'Sell Price',
+    buyPrice: 'Purchase Price',
+    sellPrice: 'Selling Price',
     partnerName: 'Partner Name',
     partnerMobile: 'Mobile Number',
     partnerDesc: 'Identity/Short Description',
@@ -129,15 +140,20 @@ export const TRANSLATIONS = {
     finishSale: 'Finish Sale',
     qty: 'Qty',
     price: 'Price',
-    total: 'Total'
+    total: 'Total',
+    color: 'Color',
+    size: 'Size',
+    stockIn: 'Stock Quantity',
+    inStock: 'In Stock',
+    outOfStock: 'Out of Stock'
   },
   BN: {
     dashboard: 'ড্যাশবোর্ড',
     transactions: 'লেনদেন',
     reports: 'রিপোর্ট',
     settings: 'সেটিংস',
-    productStock: 'প্রোডাক্ট স্টক',
-    productSale: 'পণ্য বিক্রয়',
+    productStock: 'ইনভেন্টরি',
+    productSale: 'সেলস / ইনভয়েস',
     partners: 'পার্টনার লিস্ট',
     income: 'আয়',
     expense: 'ব্যয়',
@@ -149,7 +165,7 @@ export const TRANSLATIONS = {
     date: 'তারিখ',
     category: 'খাত/বিভাগ',
     history: 'লেনদেনের ইতিহাস',
-    search: 'হিসাব খুঁজুন...',
+    search: 'খুঁজুন...',
     filterDate: 'তারিখ ফিল্টার',
     exportPDF: 'পিডিএফ ডাউনলোড',
     exportExcel: 'এক্সেল ডাউনলোড',
@@ -225,6 +241,11 @@ export const TRANSLATIONS = {
     finishSale: 'বিক্রয় সম্পন্ন করুন',
     qty: 'পরিমাণ',
     price: 'মূল্য',
-    total: 'মোট'
+    total: 'মোট',
+    color: 'রঙ',
+    size: 'সাইজ',
+    stockIn: 'স্টক পরিমাণ',
+    inStock: 'স্টকে আছে',
+    outOfStock: 'স্টক শেষ'
   }
 };

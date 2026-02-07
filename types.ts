@@ -15,6 +15,10 @@ export interface Product {
   id: string;
   name: string;
   code: string;
+  category: string;
+  color: string;
+  size: string;
+  stockQuantity: number;
   buyPrice: number;
   sellPrice: number;
   addedAt: string;
