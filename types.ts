@@ -40,6 +40,7 @@ export interface Transaction {
   category: string;
   date: string;
   createdAt: string;
+  profit?: number; // Added to track profit on sales
 }
 
 export interface UserProfile {

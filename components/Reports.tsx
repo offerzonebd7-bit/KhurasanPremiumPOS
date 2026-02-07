@@ -4,8 +4,9 @@ import { useApp } from '../App';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 
 const Reports: React.FC = () => {
-  const { transactions, t } = useApp();
-  const [viewMode, setViewMode] = useState<'MONTHLY' | 'YEARLY'>('MONTHLY');
+  const { transactions, t, user, language } = useApp();
+  const [viewMode, setViewMode] = useState<'MONTHLY' | 'YEARLY' | 'STATEMENT'>('MONTHLY');
+  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
 
   const chartData = useMemo(() => {
     const income = transactions.filter(tx => tx.type === 'INCOME').reduce((acc, tx) => acc + tx.amount, 0);
@@ -37,11 +38,147 @@ const Reports: React.FC = () => {
     return Object.values(groups).reverse();
   }, [transactions, viewMode]);
 
+  const statementData = useMemo(() => {
+    if (viewMode !== 'STATEMENT') return [];
+    
+    const dailyMap: Record<string, { income: number, expense: number, dues: number, profit: number }> = {};
+    const filteredTxs = transactions.filter(tx => tx.date.startsWith(selectedMonth));
+    
+    filteredTxs.forEach(tx => {
+      if (!dailyMap[tx.date]) {
+        dailyMap[tx.date] = { income: 0, expense: 0, dues: 0, profit: 0 };
+      }
+      if (tx.type === 'INCOME') dailyMap[tx.date].income += tx.amount;
+      if (tx.type === 'EXPENSE') dailyMap[tx.date].expense += tx.amount;
+      if (tx.type === 'DUE') dailyMap[tx.date].dues += tx.amount;
+      dailyMap[tx.date].profit += (tx.profit || 0);
+    });
+
+    return Object.entries(dailyMap)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, vals]) => ({ date, ...vals }));
+  }, [transactions, viewMode, selectedMonth]);
+
+  const statementTotals = useMemo(() => {
+    return statementData.reduce((acc, curr) => ({
+      income: acc.income + curr.income,
+      expense: acc.expense + curr.expense,
+      dues: acc.dues + curr.dues,
+      profit: acc.profit + curr.profit
+    }), { income: 0, expense: 0, dues: 0, profit: 0 });
+  }, [statementData]);
+
+  const currencySymbol = user?.currency || '৳';
+
+  if (viewMode === 'STATEMENT') {
+    return (
+      <div className="animate-in fade-in duration-500 pb-20">
+        <div className="flex flex-col md:flex-row items-center justify-between mb-8 no-print gap-4">
+           <div className="flex items-center gap-4">
+              <button onClick={() => setViewMode('MONTHLY')} className="p-3 bg-gray-100 dark:bg-gray-800 rounded-2xl">
+                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
+              </button>
+              <h2 className="text-2xl font-black dark:text-white uppercase tracking-tight">{t('monthlyStatement')}</h2>
+           </div>
+           <div className="flex items-center gap-2">
+              <input 
+                 type="month" 
+                 value={selectedMonth} 
+                 onChange={e => setSelectedMonth(e.target.value)} 
+                 className="px-6 py-3 bg-white dark:bg-gray-800 border-2 dark:border-gray-700 rounded-2xl outline-none font-black text-xs"
+              />
+              <button onClick={() => window.print()} className="px-6 py-3 bg-primary text-white font-black rounded-2xl shadow-lg uppercase text-[10px] tracking-widest">
+                 Print Statement
+              </button>
+           </div>
+        </div>
+
+        <div className="bg-white p-10 rounded-[40px] shadow-2xl border-t-[10px] border-primary print:shadow-none print:rounded-none print:p-0 min-h-[1000px]">
+           <div className="flex justify-between items-start mb-10">
+              <div>
+                 <h1 className="text-4xl font-black text-primary italic leading-none mb-4">{user?.name}</h1>
+                 <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">{t('statementLeaf')}</p>
+                 <p className="text-sm font-bold text-gray-600 mt-4">Month: <span className="font-black text-black">{new Date(selectedMonth).toLocaleDateString(language === 'EN' ? 'en-US' : 'bn-BD', { month: 'long', year: 'numeric' })}</span></p>
+              </div>
+              <div className="text-right">
+                 <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Printed On</p>
+                 <p className="text-xs font-black">{new Date().toLocaleDateString()}</p>
+              </div>
+           </div>
+
+           <table className="w-full text-left mb-10">
+              <thead>
+                 <tr className="border-b-4 border-gray-100">
+                    <th className="py-4 text-[10px] font-black uppercase tracking-widest text-gray-400">{t('date')}</th>
+                    <th className="py-4 text-[10px] font-black uppercase tracking-widest text-emerald-500">{t('income')}</th>
+                    <th className="py-4 text-[10px] font-black uppercase tracking-widest text-rose-500">{t('expense')}</th>
+                    <th className="py-4 text-[10px] font-black uppercase tracking-widest text-amber-500">{t('dues')}</th>
+                    <th className="py-4 text-[10px] font-black uppercase tracking-widest text-blue-500 text-right">{t('profit')}</th>
+                 </tr>
+              </thead>
+              <tbody className="divide-y-2 divide-gray-50">
+                 {statementData.length === 0 ? (
+                    <tr><td colSpan={5} className="py-20 text-center font-black uppercase text-gray-300 text-xs tracking-widest">{t('noTransactions')}</td></tr>
+                 ) : (
+                    statementData.map(day => (
+                       <tr key={day.date} className="hover:bg-gray-50 transition-colors">
+                          <td className="py-4 text-xs font-black font-mono">{day.date}</td>
+                          <td className="py-4 text-xs font-black text-emerald-600">{currencySymbol}{day.income.toLocaleString()}</td>
+                          <td className="py-4 text-xs font-black text-rose-600">{currencySymbol}{day.expense.toLocaleString()}</td>
+                          <td className="py-4 text-xs font-black text-amber-600">{currencySymbol}{day.dues.toLocaleString()}</td>
+                          <td className="py-4 text-xs font-black text-blue-600 text-right">{currencySymbol}{day.profit.toLocaleString()}</td>
+                       </tr>
+                    ))
+                 )}
+              </tbody>
+           </table>
+
+           <div className="bg-gray-50 p-8 rounded-[30px] border-t-4 border-primary mt-10">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                 <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-2">{t('grandTotal')} {t('income')}</p>
+                    <p className="text-xl font-black text-emerald-600">{currencySymbol}{statementTotals.income.toLocaleString()}</p>
+                 </div>
+                 <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-2">{t('grandTotal')} {t('expense')}</p>
+                    <p className="text-xl font-black text-rose-600">{currencySymbol}{statementTotals.expense.toLocaleString()}</p>
+                 </div>
+                 <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-2">{t('grandTotal')} {t('dues')}</p>
+                    <p className="text-xl font-black text-amber-600">{currencySymbol}{statementTotals.dues.toLocaleString()}</p>
+                 </div>
+                 <div className="text-right">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-2">{t('grandTotal')} {t('profit')}</p>
+                    <p className="text-2xl font-black text-blue-700">{currencySymbol}{statementTotals.profit.toLocaleString()}</p>
+                 </div>
+              </div>
+           </div>
+
+           <div className="mt-20 flex justify-between items-end border-t-2 border-dashed pt-10">
+              <div className="text-[8px] font-black uppercase tracking-[0.5em] text-gray-300">
+                 Khurasan - Premium POS Statement
+              </div>
+              <div className="text-center">
+                 <div className="w-40 border-b-2 border-gray-900 mb-2"></div>
+                 <p className="text-[8px] font-black uppercase tracking-widest">Authorized Signature</p>
+              </div>
+           </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 animate-in zoom-in duration-500 pb-20">
       <div className="flex items-center justify-between no-print">
          <h2 className="text-2xl font-black dark:text-white uppercase tracking-tight">Analytics</h2>
          <div className="flex gap-2">
+            <button 
+              onClick={() => setViewMode('STATEMENT')}
+              className="px-6 py-2 bg-primary text-white rounded-xl text-xs font-black shadow-lg hover:opacity-90 transition-all uppercase tracking-widest"
+            >
+              {t('monthlyStatement')}
+            </button>
             <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-2xl border dark:border-gray-700">
                <button 
                  onClick={() => setViewMode('MONTHLY')}
@@ -56,9 +193,6 @@ const Reports: React.FC = () => {
                  {t('yearly')}
                </button>
             </div>
-            <button onClick={() => window.print()} className="p-3 bg-blue-600 text-white rounded-2xl shadow hover:bg-blue-700 transition-all">
-               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-            </button>
          </div>
       </div>
 
@@ -129,7 +263,7 @@ const Reports: React.FC = () => {
       </div>
       
       <div className="hidden print:block text-center pt-10 border-t text-[10px] font-black uppercase tracking-[1em] text-gray-300">
-         GRAPHICO GLOBAL • MANAGEMONEY PRO
+         GRAPHICO GLOBAL • KHURASAN POS
       </div>
     </div>
   );

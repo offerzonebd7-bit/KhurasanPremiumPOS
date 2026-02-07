@@ -32,6 +32,7 @@ const Dashboard: React.FC = () => {
       income: txs.filter(t => t.type === 'INCOME').reduce((acc, curr) => acc + curr.amount, 0),
       expense: txs.filter(t => t.type === 'EXPENSE').reduce((acc, curr) => acc + curr.amount, 0),
       dues: txs.filter(t => t.type === 'DUE').reduce((acc, curr) => acc + curr.amount, 0),
+      profit: txs.reduce((acc, curr) => acc + (curr.profit || 0), 0),
     });
     const all = totals(transactions);
     const today = totals(transactions.filter(tx => tx.date === todayStr));
@@ -193,7 +194,7 @@ const Dashboard: React.FC = () => {
 
       <section className="bg-gray-50 dark:bg-gray-900/40 p-5 rounded-2xl border dark:border-gray-800">
         <h3 className="text-[10px] font-black dark:text-white uppercase tracking-[0.3em] opacity-50 mb-4">{t('todaysSummary')}</h3>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
            <div className="bg-emerald-50 dark:bg-emerald-950/20 p-4 rounded-xl border border-emerald-100 dark:border-emerald-900/30">
               <p className="text-[8px] font-black text-emerald-600 uppercase tracking-widest">Today's Income</p>
               <p className="text-lg font-black text-emerald-700 dark:text-emerald-400 mt-1">{currencySymbol}{summary.today.income.toLocaleString()}</p>
@@ -206,6 +207,10 @@ const Dashboard: React.FC = () => {
               <p className="text-[8px] font-black text-amber-600 uppercase tracking-widest">Today's Dues</p>
               <p className="text-lg font-black text-amber-700 dark:text-amber-400 mt-1">{currencySymbol}{summary.today.dues.toLocaleString()}</p>
            </div>
+           <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30">
+              <p className="text-[8px] font-black text-blue-600 uppercase tracking-widest">Today's Profit</p>
+              <p className="text-lg font-black text-blue-700 dark:text-blue-400 mt-1">{currencySymbol}{summary.today.profit.toLocaleString()}</p>
+           </div>
         </div>
       </section>
 
@@ -214,7 +219,7 @@ const Dashboard: React.FC = () => {
            <h3 className="text-[10px] font-black dark:text-white uppercase tracking-[0.3em] opacity-50">Today's History</h3>
            <div className="flex items-center gap-2">
               <button onClick={() => setIsInvoiceOpen(true)} className="p-2 bg-primary text-white rounded-lg shadow hover:opacity-90 transition-all" title={t('printInvoice')}>
-                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 00-2 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
               </button>
            </div>
         </div>

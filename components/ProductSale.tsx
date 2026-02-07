@@ -11,6 +11,7 @@ interface SaleItem {
   price: number;
   color: string;
   size: string;
+  buyPrice?: number; // Added to calculate profit
 }
 
 const ProductSale: React.FC = () => {
@@ -56,6 +57,13 @@ const ProductSale: React.FC = () => {
     return items.reduce((sum, item) => sum + (Number(item.qty || 0) * Number(item.price || 0)), 0);
   }, [items]);
 
+  const totalProfit = useMemo(() => {
+    return items.reduce((sum, item) => {
+      const unitProfit = item.price - (item.buyPrice || 0);
+      return sum + (unitProfit * item.qty);
+    }, 0);
+  }, [items]);
+
   const currentPaid = parseFloat(paidAmount) || 0;
   const currentDue = Math.max(0, totalAmount - currentPaid);
 
@@ -73,15 +81,16 @@ const ProductSale: React.FC = () => {
     const customerLabel = customerInfo.name || (language === 'EN' ? 'Walk-in' : 'নগদ কাস্টমার');
     const commonDesc = `${invId} - ${customerLabel}`;
     
-    // --- INTEGRATION WITH DASHBOARD (Directly calling context methods) ---
-    // Save Income
+    // --- INTEGRATION WITH DASHBOARD ---
+    // Save Income with Profit metadata
     if (currentPaid > 0) {
       await addTransaction({ 
         amount: currentPaid, 
         description: commonDesc, 
         type: 'INCOME', 
         category: 'Product Sales', 
-        date: today 
+        date: today,
+        profit: totalProfit // Pass profit to transaction
       });
     }
     
@@ -92,7 +101,8 @@ const ProductSale: React.FC = () => {
         description: `${commonDesc} (${language === 'EN' ? 'Due' : 'বাকি'})`, 
         type: 'DUE', 
         category: 'Sales Dues', 
-        date: today 
+        date: today,
+        profit: currentPaid > 0 ? 0 : totalProfit // If no payment, all profit is pending (simplified)
       });
     }
 
@@ -188,7 +198,7 @@ const ProductSale: React.FC = () => {
                        </select>
                        <select value={item.color} onChange={e => {
                           const v = variants.find(p => p.size === item.size && p.color === e.target.value);
-                          updateItem(item.id, {color: e.target.value, productId: v?.id, price: v?.sellPrice || 0});
+                          updateItem(item.id, {color: e.target.value, productId: v?.id, price: v?.sellPrice || 0, buyPrice: v?.buyPrice || 0});
                        }} className="px-4 py-3 bg-white dark:bg-gray-800 border-2 dark:border-gray-700 rounded-xl font-bold text-xs" disabled={!item.size}>
                           <option value="">Color</option>
                           {availableColors.map(c => <option key={c} value={c}>{c}</option>)}

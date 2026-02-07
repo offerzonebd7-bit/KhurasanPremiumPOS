@@ -196,7 +196,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 </a>
              ))}
           </div>
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">Developed by {BRAND_INFO.developer}</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
+            Developed by <a href={BRAND_INFO.developerUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{BRAND_INFO.developer}</a>
+          </p>
         </footer>
       </main>
     </div>

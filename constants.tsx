@@ -4,6 +4,7 @@ import React from 'react';
 export const BRAND_INFO = {
   name: 'Khurasan - Premium POS',
   developer: 'Graphico Global',
+  developerUrl: 'https://www.facebook.com/graphicoglobal',
   website: 'https://khurasan.shop/',
   facebook: 'https://www.facebook.com/share/1Bd9eNr9qx/?mibextid=wwXIfr',
   whatsapp: 'https://wa.me/8801609678103',
@@ -57,6 +58,7 @@ export const TRANSLATIONS = {
     income: 'Income',
     expense: 'Expense',
     dues: 'Dues',
+    profit: 'Profit',
     totalBalance: 'Total Balance',
     addTransaction: 'Add Record',
     description: 'Description',
@@ -145,7 +147,10 @@ export const TRANSLATIONS = {
     size: 'Size',
     stockIn: 'Stock Quantity',
     inStock: 'In Stock',
-    outOfStock: 'Out of Stock'
+    outOfStock: 'Out of Stock',
+    monthlyStatement: 'Monthly Ledger',
+    statementLeaf: 'Monthly Statement Leaf',
+    grandTotal: 'Grand Total'
   },
   BN: {
     dashboard: 'ড্যাশবোর্ড',
@@ -158,6 +163,7 @@ export const TRANSLATIONS = {
     income: 'আয়',
     expense: 'ব্যয়',
     dues: 'বাকি (দেনা)',
+    profit: 'লাভ (Profit)',
     totalBalance: 'মোট ব্যালেন্স',
     addTransaction: 'হিসাব যুক্ত করুন',
     description: 'বিবরণ লিখুন',
@@ -246,6 +252,9 @@ export const TRANSLATIONS = {
     size: 'সাইজ',
     stockIn: 'স্টক পরিমাণ',
     inStock: 'স্টকে আছে',
-    outOfStock: 'স্টক শেষ'
+    outOfStock: 'স্টক শেষ',
+    monthlyStatement: 'মাসিক লেজার/পাতা',
+    statementLeaf: 'মাসিক হিসাবের পাতা',
+    grandTotal: 'সর্বমোট'
   }
 };
