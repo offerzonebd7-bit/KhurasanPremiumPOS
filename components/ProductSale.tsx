@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../App';
 import { Product } from '../types';
 
@@ -32,7 +32,7 @@ const ProductSale: React.FC = () => {
   };
 
   const updateItem = (id: string, updates: Partial<SaleItem>) => {
-    setItems(items.map(i => i.id === id ? { ...i, ...updates } : i));
+    setItems(prevItems => prevItems.map(i => i.id === id ? { ...i, ...updates } : i));
   };
 
   const handleNameSearch = (val: string, index: number) => {
@@ -48,20 +48,21 @@ const ProductSale: React.FC = () => {
   };
 
   const selectProductName = (name: string, index: number) => {
-    updateItem(items[index].id, { productName: name, color: '', size: '', productId: undefined });
+    updateItem(items[index].id, { productName: name, color: '', size: '', productId: undefined, qty: 0, price: 0 });
     setSuggestions({ index: -1, list: [] });
   };
 
   const totalAmount = useMemo(() => {
-    return items.reduce((sum, item) => sum + (item.qty * item.price), 0);
+    return items.reduce((sum, item) => sum + (Number(item.qty || 0) * Number(item.price || 0)), 0);
   }, [items]);
 
   const currentPaid = parseFloat(paidAmount) || 0;
   const currentDue = Math.max(0, totalAmount - currentPaid);
 
   const handleFinishSale = async () => {
-    if (items.some(i => !i.productId || i.price < 0 || i.qty <= 0)) {
-       alert(language === 'EN' ? 'Please fill valid product, size, color and quantity' : 'সঠিক পণ্য, সাইজ, কালার এবং পরিমাণ দিন');
+    // Basic validation
+    if (items.some(i => !i.productId || Number(i.qty) <= 0)) {
+       alert(language === 'EN' ? 'Please select product, variant and valid quantity' : 'দয়া করে পণ্য এবং সঠিক পরিমাণ সিলেক্ট করুন');
        return;
     }
 
@@ -69,11 +70,13 @@ const ProductSale: React.FC = () => {
     setLastInvoiceId(invId);
     
     const today = new Date().toISOString().split('T')[0];
-    const commonDesc = `${invId} - ${customerInfo.name || 'Walk-in'} (${items.length} items)`;
+    const customerLabel = customerInfo.name || (language === 'EN' ? 'Walk-in' : 'নগদ কাস্টমার');
+    const commonDesc = `${invId} - ${customerLabel}`;
     
-    // INTEGRATION WITH DASHBOARD
+    // --- INTEGRATION WITH DASHBOARD (Directly calling context methods) ---
+    // Save Income
     if (currentPaid > 0) {
-      addTransaction({ 
+      await addTransaction({ 
         amount: currentPaid, 
         description: commonDesc, 
         type: 'INCOME', 
@@ -82,17 +85,18 @@ const ProductSale: React.FC = () => {
       });
     }
     
+    // Save Due
     if (currentDue > 0) {
-      addTransaction({ 
+      await addTransaction({ 
         amount: currentDue, 
-        description: `${commonDesc} (Due)`, 
+        description: `${commonDesc} (${language === 'EN' ? 'Due' : 'বাকি'})`, 
         type: 'DUE', 
         category: 'Sales Dues', 
         date: today 
       });
     }
 
-    // STOCK REDUCTION
+    // --- STOCK REDUCTION ---
     if (user) {
       const updatedProducts = (user.products || []).map(p => {
         const sold = items.find(item => item.productId === p.id);
@@ -100,9 +104,10 @@ const ProductSale: React.FC = () => {
         return p;
       });
       const updatedUser = { ...user, products: updatedProducts };
-      setUser(updatedUser, role, moderatorName);
       await syncUserProfile(updatedUser);
+      setUser(updatedUser, role, moderatorName);
     }
+    
     setShowInvoice(true);
   };
 
@@ -177,7 +182,7 @@ const ProductSale: React.FC = () => {
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                       <select value={item.size} onChange={e => updateItem(item.id, {size: e.target.value, productId: undefined, color: ''})} className="px-4 py-3 bg-white dark:bg-gray-800 border-2 dark:border-gray-700 rounded-xl font-bold text-xs" disabled={!item.productName}>
+                       <select value={item.size} onChange={e => updateItem(item.id, {size: e.target.value, productId: undefined, color: '', price: 0})} className="px-4 py-3 bg-white dark:bg-gray-800 border-2 dark:border-gray-700 rounded-xl font-bold text-xs" disabled={!item.productName}>
                           <option value="">Size</option>
                           {availableSizes.map(s => <option key={s} value={s}>{s}</option>)}
                        </select>
@@ -190,15 +195,15 @@ const ProductSale: React.FC = () => {
                        </select>
                        <div className="flex flex-col gap-1">
                           <label className="text-[8px] font-black uppercase text-gray-400 ml-2">Qty</label>
-                          <input type="number" value={item.qty === 0 ? '' : item.qty} onChange={e => updateItem(item.id, {qty: parseInt(e.target.value) || 0})} className="px-4 py-3 bg-white dark:bg-gray-800 border-2 dark:border-gray-700 rounded-xl font-bold text-xs text-center" placeholder="0" />
+                          <input type="number" value={item.qty === 0 ? '' : item.qty} onChange={e => updateItem(item.id, {qty: parseInt(e.target.value) || 0})} className="px-4 py-3 bg-white dark:bg-gray-800 border-2 dark:border-gray-700 rounded-xl font-black text-xs text-center focus:border-primary outline-none" placeholder="0" />
                        </div>
                        <div className="flex flex-col gap-1">
-                          <label className="text-[8px] font-black uppercase text-gray-400 ml-2">Total Price</label>
+                          <label className="text-[8px] font-black uppercase text-gray-400 ml-2">Total for Item</label>
                           <div className="px-4 py-3 bg-primary/10 text-primary font-black text-center rounded-xl flex items-center justify-center text-xs">
                              {currencySymbol}{(item.qty * item.price).toLocaleString()}
                           </div>
-                          {/* Hidden editable price field for bargaining */}
-                          <input type="number" value={item.price} onChange={e => updateItem(item.id, {price: parseFloat(e.target.value) || 0})} className="mt-1 px-4 py-1 text-[8px] bg-gray-100 dark:bg-gray-800 rounded border border-dashed dark:border-gray-700" placeholder="Unit Price" />
+                          {/* Unit price input for bargaining */}
+                          <input type="number" value={item.price} onChange={e => updateItem(item.id, {price: parseFloat(e.target.value) || 0})} className="mt-1 px-4 py-1 text-[8px] bg-gray-100 dark:bg-gray-800 rounded border border-dashed dark:border-gray-700 text-center" placeholder="Price" />
                        </div>
                     </div>
                  </div>

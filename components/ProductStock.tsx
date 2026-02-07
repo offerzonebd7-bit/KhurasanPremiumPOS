@@ -32,14 +32,27 @@ const ProductStock: React.FC = () => {
       groups[key].items.push(p);
     });
 
-    // Enhanced filtering: search in name, code, OR color of items
+    const term = searchTerm.toLowerCase();
     return Object.values(groups).filter(g => {
-      const nameMatch = g.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const codeMatch = g.code.toLowerCase().includes(searchTerm.toLowerCase());
-      const colorMatch = g.items.some(item => item.color.toLowerCase().includes(searchTerm.toLowerCase()));
+      const nameMatch = g.name.toLowerCase().includes(term);
+      const codeMatch = g.code.toLowerCase().includes(term);
+      const colorMatch = g.items.some(item => item.color.toLowerCase().includes(term));
       return nameMatch || codeMatch || colorMatch;
+    }).map(g => {
+      // If there's a color match but not name match, we might want to filter items inside
+      const filteredItems = term ? g.items.filter(i => 
+        i.color.toLowerCase().includes(term) || 
+        i.size.toLowerCase().includes(term) ||
+        g.name.toLowerCase().includes(term) ||
+        g.code.toLowerCase().includes(term)
+      ) : g.items;
+      
+      return { ...g, filteredItems };
     });
   }, [user?.products, searchTerm]);
+
+  // Rest of the logic remains the same... (Skipping repetitive parts for brevity but keeping structure)
+  // [Code for toggleSize, toggleColor, etc. is same but ensures it's fully implemented below]
 
   const toggleSize = (size: string) => {
     setFormData(prev => ({
@@ -72,35 +85,23 @@ const ProductStock: React.FC = () => {
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    
     let finalColors = [...formData.selectedColors];
-    if (formData.customColor.trim()) {
-      finalColors.push(formData.customColor.trim());
-    }
-
+    if (formData.customColor.trim()) finalColors.push(formData.customColor.trim());
     let finalSizes = [...formData.selectedSizes];
-    if (formData.customSize.trim()) {
-      finalSizes.push(formData.customSize.trim());
-    }
-
+    if (formData.customSize.trim()) finalSizes.push(formData.customSize.trim());
     if (finalColors.length === 0 || finalSizes.length === 0) {
       alert(language === 'EN' ? 'Select at least one color and one size' : 'অন্তত একটি কালার এবং একটি সাইজ সিলেক্ট করুন');
       return;
     }
-
     setIsSyncing(true);
     const newProducts: Product[] = [];
     const baseCode = formData.code || ('C-' + Date.now().toString().slice(-6));
-    
     finalColors.forEach(color => {
       finalSizes.forEach(size => {
         newProducts.push({
           id: 'P-' + Math.random().toString(36).substr(2, 9),
-          name: formData.name,
-          code: baseCode,
-          category: formData.category || 'Clothing',
-          color: color,
-          size: size,
+          name: formData.name, code: baseCode, category: formData.category || 'Clothing',
+          color: color, size: size,
           stockQuantity: parseInt(formData.stockQuantity) || 0,
           buyPrice: parseFloat(formData.buyPrice) || 0,
           sellPrice: parseFloat(formData.sellPrice) || 0,
@@ -108,11 +109,9 @@ const ProductStock: React.FC = () => {
         });
       });
     });
-
     const updatedUser = { ...user, products: [...(user.products || []), ...newProducts] };
-    setUser(updatedUser, role, moderatorName);
     await syncUserProfile(updatedUser);
-    
+    setUser(updatedUser, role, moderatorName);
     setFormData({ 
       name: '', code: '', category: '', selectedColors: [], selectedSizes: [], 
       customColor: '', customSize: '', stockQuantity: '', buyPrice: '', sellPrice: '' 
@@ -126,8 +125,8 @@ const ProductStock: React.FC = () => {
     setIsSyncing(true);
     const updatedProducts = (user.products || []).map(p => p.id === editingProduct.id ? editingProduct : p);
     const updatedUser = { ...user, products: updatedProducts };
-    setUser(updatedUser, role, moderatorName);
     await syncUserProfile(updatedUser);
+    setUser(updatedUser, role, moderatorName);
     setEditingProduct(null);
     setIsSyncing(false);
   };
@@ -137,8 +136,8 @@ const ProductStock: React.FC = () => {
     if (!user || !confirm(language === 'EN' ? 'Delete this variant?' : 'এই ভেরিয়েন্টটি ডিলিট করতে চান?')) return;
     setIsSyncing(true);
     const updatedUser = { ...user, products: (user.products || []).filter(p => p.id !== id) };
-    setUser(updatedUser, role, moderatorName);
     await syncUserProfile(updatedUser);
+    setUser(updatedUser, role, moderatorName);
     setIsSyncing(false);
   };
 
@@ -173,6 +172,7 @@ const ProductStock: React.FC = () => {
         </div>
       )}
 
+      {/* Bulk Add Form */}
       <section className="bg-white dark:bg-gray-800 p-6 sm:p-10 rounded-[40px] shadow-sm border dark:border-gray-700">
         <h3 className="text-xl font-black mb-8 dark:text-white uppercase tracking-tighter flex items-center">
            <span className="w-2.5 h-8 bg-primary mr-4 rounded-full"></span>
@@ -189,7 +189,6 @@ const ProductStock: React.FC = () => {
                 <input type="text" placeholder="SKU-101" value={formData.code} onChange={e => setFormData({...formData, code: e.target.value})} className={inputClass} />
              </div>
           </div>
-
           <div className="space-y-3">
              <div className="flex items-center justify-between px-4">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Select Colors</label>
@@ -201,10 +200,9 @@ const ProductStock: React.FC = () => {
                       {color}
                    </button>
                 ))}
-                <input type="text" placeholder="Custom Color Name" value={formData.customColor} onChange={e => setFormData({...formData, customColor: e.target.value})} className="px-4 py-2 bg-white dark:bg-gray-800 border-2 dark:border-gray-700 rounded-xl outline-none font-bold text-[10px] w-40 focus:border-primary transition-all" />
+                <input type="text" placeholder="Custom Color" value={formData.customColor} onChange={e => setFormData({...formData, customColor: e.target.value})} className="px-4 py-2 bg-white dark:bg-gray-800 border-2 dark:border-gray-700 rounded-xl outline-none font-bold text-[10px] w-40 focus:border-primary transition-all" />
              </div>
           </div>
-
           <div className="space-y-3">
              <div className="flex items-center justify-between px-4">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Select Sizes</label>
@@ -219,32 +217,36 @@ const ProductStock: React.FC = () => {
                 <input type="text" placeholder="Custom Size" value={formData.customSize} onChange={e => setFormData({...formData, customSize: e.target.value})} className="px-4 py-2 bg-white dark:bg-gray-800 border-2 dark:border-gray-700 rounded-xl outline-none font-bold text-[10px] w-40 focus:border-primary transition-all" />
              </div>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
              <input type="number" placeholder="Qty per variant" value={formData.stockQuantity} onChange={e => setFormData({...formData, stockQuantity: e.target.value})} className={inputClass} required />
              <input type="number" placeholder="Buy Price" value={formData.buyPrice} onChange={e => setFormData({...formData, buyPrice: e.target.value})} className={inputClass} required />
              <input type="number" placeholder="Sell Price" value={formData.sellPrice} onChange={e => setFormData({...formData, sellPrice: e.target.value})} className={inputClass} required />
           </div>
-
           <button type="submit" disabled={isSyncing} className="w-full py-5 bg-primary text-white font-black rounded-3xl shadow-2xl uppercase tracking-[0.3em] text-[11px] border-b-8 border-black/20">
             {isSyncing ? 'Processing...' : 'Save Stock'}
           </button>
         </form>
       </section>
 
+      {/* Inventory Status with Enhanced Search */}
       <section className="bg-white dark:bg-gray-800 p-6 sm:p-10 rounded-[40px] shadow-sm border dark:border-gray-700">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-10">
            <h3 className="text-xl font-black dark:text-white uppercase tracking-tighter">Inventory Status</h3>
-           <input type="text" placeholder="Search models, codes, colors..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full md:w-80 pl-14 pr-6 py-4 bg-gray-50 dark:bg-gray-900 border-2 dark:border-gray-700 rounded-3xl outline-none font-bold text-xs" />
+           <div className="relative w-full md:w-80">
+              <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" strokeWidth={2.5}/></svg>
+              <input type="text" placeholder="Search code, color, name..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full pl-12 pr-6 py-4 bg-gray-50 dark:bg-gray-900 border-2 dark:border-gray-700 rounded-3xl outline-none font-bold text-xs focus:border-primary transition-all" />
+           </div>
         </div>
 
         <div className="space-y-4">
            {groupedInventory.map(group => {
               const groupKey = `${group.name}-${group.code}`;
-              const isExpanded = expandedGroup === groupKey;
+              // If we are searching and there's a match in the group, we can decide to auto-expand
+              const isExpanded = expandedGroup === groupKey || (searchTerm.length > 1);
+              
               return (
                  <div key={groupKey} className="overflow-hidden border-2 dark:border-gray-700 rounded-[30px] transition-all">
-                    <button onClick={() => setExpandedGroup(isExpanded ? null : groupKey)} className={`w-full flex items-center justify-between p-6 sm:p-8 text-left ${isExpanded ? 'bg-primary text-white' : 'bg-white dark:bg-gray-800'}`}>
+                    <button onClick={() => setExpandedGroup(expandedGroup === groupKey ? null : groupKey)} className={`w-full flex items-center justify-between p-6 sm:p-8 text-left ${isExpanded ? 'bg-primary text-white' : 'bg-white dark:bg-gray-800'}`}>
                        <div>
                           <h4 className="font-black uppercase tracking-tighter">{group.name}</h4>
                           <p className={`text-[10px] font-black uppercase mt-1 ${isExpanded ? 'text-white/70' : 'text-gray-400'}`}>Code: {group.code}</p>
@@ -253,7 +255,7 @@ const ProductStock: React.FC = () => {
                     </button>
                     {isExpanded && (
                        <div className="p-4 sm:p-8 bg-gray-50 dark:bg-gray-900/50 border-t-2 dark:border-gray-700 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {group.items.map(p => (
+                          {group.filteredItems.map(p => (
                              <div key={p.id} className="bg-white dark:bg-gray-800 p-5 rounded-2xl border dark:border-gray-700 shadow-sm flex items-center justify-between group">
                                 <div>
                                    <div className="flex gap-2 mb-2">
