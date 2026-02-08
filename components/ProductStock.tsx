@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../App';
 import { Product } from '../types';
-import { CLOTHING_SIZES, DEFAULT_COLORS } from '../constants';
+import { CLOTHING_SIZES, DEFAULT_COLORS, PRODUCT_CATEGORIES, TUPI_SIZES } from '../constants';
 
 const ProductStock: React.FC = () => {
   const { user, setUser, role, moderatorName, t, language, syncUserProfile } = useApp();
@@ -39,7 +39,6 @@ const ProductStock: React.FC = () => {
       const colorMatch = g.items.some(item => item.color.toLowerCase().includes(term));
       return nameMatch || codeMatch || colorMatch;
     }).map(g => {
-      // If there's a color match but not name match, we might want to filter items inside
       const filteredItems = term ? g.items.filter(i => 
         i.color.toLowerCase().includes(term) || 
         i.size.toLowerCase().includes(term) ||
@@ -50,9 +49,6 @@ const ProductStock: React.FC = () => {
       return { ...g, filteredItems };
     });
   }, [user?.products, searchTerm]);
-
-  // Rest of the logic remains the same... (Skipping repetitive parts for brevity but keeping structure)
-  // [Code for toggleSize, toggleColor, etc. is same but ensures it's fully implemented below]
 
   const toggleSize = (size: string) => {
     setFormData(prev => ({
@@ -69,9 +65,10 @@ const ProductStock: React.FC = () => {
   };
 
   const selectAllSizes = () => {
+    const all = [...CLOTHING_SIZES, ...TUPI_SIZES];
     setFormData(prev => ({
       ...prev,
-      selectedSizes: prev.selectedSizes.length === CLOTHING_SIZES.length ? [] : [...CLOTHING_SIZES]
+      selectedSizes: prev.selectedSizes.length === all.length ? [] : all
     }));
   };
 
@@ -85,6 +82,10 @@ const ProductStock: React.FC = () => {
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    if (!formData.category) {
+       alert(language === 'EN' ? 'Please select a category' : 'দয়া করে একটি ক্যাটাগরি সিলেক্ট করুন');
+       return;
+    }
     let finalColors = [...formData.selectedColors];
     if (formData.customColor.trim()) finalColors.push(formData.customColor.trim());
     let finalSizes = [...formData.selectedSizes];
@@ -100,7 +101,7 @@ const ProductStock: React.FC = () => {
       finalSizes.forEach(size => {
         newProducts.push({
           id: 'P-' + Math.random().toString(36).substr(2, 9),
-          name: formData.name, code: baseCode, category: formData.category || 'Clothing',
+          name: formData.name, code: baseCode, category: formData.category,
           color: color, size: size,
           stockQuantity: parseInt(formData.stockQuantity) || 0,
           buyPrice: parseFloat(formData.buyPrice) || 0,
@@ -160,7 +161,7 @@ const ProductStock: React.FC = () => {
                 <input type="text" value={editingProduct.code} onChange={e => setEditingProduct({...editingProduct, code: e.target.value})} className={inputClass} placeholder="Code" required />
                 <input type="text" value={editingProduct.color} onChange={e => setEditingProduct({...editingProduct, color: e.target.value})} className={inputClass} placeholder="Color" required />
                 <select value={editingProduct.size} onChange={e => setEditingProduct({...editingProduct, size: e.target.value})} className={inputClass}>
-                  {CLOTHING_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
+                  {[...CLOTHING_SIZES, ...TUPI_SIZES].map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
                 <input type="number" value={editingProduct.stockQuantity} onChange={e => setEditingProduct({...editingProduct, stockQuantity: parseInt(e.target.value) || 0})} className={inputClass} placeholder="Stock" required />
                 <input type="number" value={editingProduct.buyPrice} onChange={e => setEditingProduct({...editingProduct, buyPrice: parseFloat(e.target.value) || 0})} className={inputClass} placeholder="Buy Price" required />
@@ -172,14 +173,22 @@ const ProductStock: React.FC = () => {
         </div>
       )}
 
-      {/* Bulk Add Form */}
       <section className="bg-white dark:bg-gray-800 p-6 sm:p-10 rounded-[40px] shadow-sm border dark:border-gray-700">
         <h3 className="text-xl font-black mb-8 dark:text-white uppercase tracking-tighter flex items-center">
            <span className="w-2.5 h-8 bg-primary mr-4 rounded-full"></span>
            Add Stock (Bulk Variants)
         </h3>
         <form onSubmit={handleAdd} className="space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+             <div>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4 mb-2 block">{language === 'EN' ? 'Category' : 'ক্যাটাগরি'}</label>
+                <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className={inputClass} required>
+                  <option value="">{language === 'EN' ? 'Select' : 'সিলেক্ট'}</option>
+                  {PRODUCT_CATEGORIES.map(cat => (
+                    <option key={cat.en} value={cat.en}>{language === 'EN' ? cat.en : cat.bn}</option>
+                  ))}
+                </select>
+             </div>
              <div className="md:col-span-2">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4 mb-2 block">{t('productName')}</label>
                 <input type="text" placeholder="e.g. Premium Panjabi" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className={inputClass} required />
@@ -214,6 +223,17 @@ const ProductStock: React.FC = () => {
                       {size}
                    </button>
                 ))}
+             </div>
+             <div className="mt-4 px-4 flex items-center gap-2">
+                <span className="w-1.5 h-4 bg-primary rounded-full"></span>
+                <label className="text-[10px] font-black text-primary uppercase tracking-widest">টুপি (Tupi Sizes)</label>
+             </div>
+             <div className="flex flex-wrap gap-2 p-5 bg-gray-50 dark:bg-gray-900/50 rounded-3xl border-2 border-dashed dark:border-gray-700">
+                {TUPI_SIZES.map(size => (
+                   <button key={size} type="button" onClick={() => toggleSize(size)} className={`px-3 py-2 rounded-xl text-[10px] font-black transition-all border-2 ${formData.selectedSizes.includes(size) ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg' : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 text-gray-400'}`}>
+                      {size}
+                   </button>
+                ))}
                 <input type="text" placeholder="Custom Size" value={formData.customSize} onChange={e => setFormData({...formData, customSize: e.target.value})} className="px-4 py-2 bg-white dark:bg-gray-800 border-2 dark:border-gray-700 rounded-xl outline-none font-bold text-[10px] w-40 focus:border-primary transition-all" />
              </div>
           </div>
@@ -228,7 +248,6 @@ const ProductStock: React.FC = () => {
         </form>
       </section>
 
-      {/* Inventory Status with Enhanced Search */}
       <section className="bg-white dark:bg-gray-800 p-6 sm:p-10 rounded-[40px] shadow-sm border dark:border-gray-700">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-10">
            <h3 className="text-xl font-black dark:text-white uppercase tracking-tighter">Inventory Status</h3>
@@ -241,7 +260,6 @@ const ProductStock: React.FC = () => {
         <div className="space-y-4">
            {groupedInventory.map(group => {
               const groupKey = `${group.name}-${group.code}`;
-              // If we are searching and there's a match in the group, we can decide to auto-expand
               const isExpanded = expandedGroup === groupKey || (searchTerm.length > 1);
               
               return (

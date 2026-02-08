@@ -35,6 +35,18 @@ export const CURRENCIES = [
   { code: 'S$', name: 'SGD' },
 ];
 
+export const PRODUCT_CATEGORIES = [
+  { en: 'Jubba', bn: 'জুব্বা' },
+  { en: 'Panjabi', bn: 'পাঞ্জাবি' },
+  { en: 'Pajama', bn: 'পায়জামা' },
+  { en: 'Abaya', bn: 'আবায়া' },
+  { en: 'Burqa', bn: 'বোরকা' },
+  { en: 'Tupi', bn: 'টুপি' },
+  { en: 'Koti', bn: 'কটি' },
+  { en: 'Rumal', bn: 'রুমাল' },
+  { en: 'Pagri', bn: 'পাগড়ি' }
+];
+
 export const CLOTHING_SIZES = [
   "20", "22", "24", "26", "28", "30", "32", "34", "36", "38", "40", "42", "44", "46", 
   "48.L", "48.XL", "50.M", "50.L", "50.XL", "50.XXL", "52.M", "52.L", "52.XL", "52.XXL", 
@@ -42,8 +54,11 @@ export const CLOTHING_SIZES = [
   "58.XXL", "60.XL", "60.XXL", "62.XL", "62.XXL"
 ];
 
+export const TUPI_SIZES = ["20", "20.5", "21", "21.5", "22", "22.5", "23", "23.5"];
+
 export const DEFAULT_COLORS = [
-  "Black", "White", "Red", "Blue", "Navy Blue", "Green", "Olive", "Yellow", "Maroon", "Grey"
+  "Black", "White", "Red", "Blue", "Navy Blue", "Green", "Olive", "Yellow", "Maroon", "Grey",
+  "Cream", "Coffee", "Beige", "Lavender", "Teal", "Rust", "Peach", "Mustard", "Charcoal", "Bottle Green"
 ];
 
 export const TRANSLATIONS = {
