@@ -108,7 +108,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </div>
 
         <footer className="w-full py-4 text-center border-t dark:border-gray-800 print:hidden bg-white/50 dark:bg-gray-900/50">
-           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+           <p className="text-[8px] font-black uppercase tracking-[0.4em] text-gray-400">
              Developed by <a href={BRAND_INFO.developerUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{BRAND_INFO.developer}</a>
            </p>
         </footer>

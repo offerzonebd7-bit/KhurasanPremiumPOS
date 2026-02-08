@@ -81,7 +81,6 @@ const ProductSale: React.FC = () => {
     const customerLabel = customerInfo.name || (language === 'EN' ? 'Walk-in' : 'নগদ কাস্টমার');
     const commonDesc = `${invId} - ${customerLabel}`;
     
-    // 1. Prepare Sales Records
     const newSaleEntries: SaleRecord[] = items.map(item => ({
       id: 'S-' + Math.random().toString(36).substr(2, 9),
       invoiceId: invId,
@@ -94,7 +93,6 @@ const ProductSale: React.FC = () => {
       profit: (item.price - (item.buyPrice || 0)) * item.qty
     }));
 
-    // 2. Prepare Updated Product List (Stock Reduction)
     const updatedProducts = user.products.map(p => {
       const soldItems = items.filter(item => item.productId === p.id);
       const totalSoldQty = soldItems.reduce((acc, curr) => acc + curr.qty, 0);
@@ -102,7 +100,6 @@ const ProductSale: React.FC = () => {
       return p;
     });
 
-    // 3. Sync everything to User Profile in ONE call to avoid overwriting
     const updatedUser = { 
       ...user, 
       products: updatedProducts, 
@@ -112,9 +109,8 @@ const ProductSale: React.FC = () => {
     await syncUserProfile(updatedUser);
     setUser(updatedUser, role, moderatorName);
 
-    // 4. Financial Transactions
     if (currentPaid > 0) {
-      await addTransaction({ 
+      addTransaction({ 
         amount: currentPaid, 
         description: commonDesc, 
         type: 'INCOME', 
@@ -125,7 +121,7 @@ const ProductSale: React.FC = () => {
     }
     
     if (currentDue > 0) {
-      await addTransaction({ 
+      addTransaction({ 
         amount: currentDue, 
         description: `${commonDesc} (${language === 'EN' ? 'Due' : 'বাকি'})`, 
         type: 'DUE', 
@@ -142,35 +138,77 @@ const ProductSale: React.FC = () => {
 
   if (showInvoice) {
     return (
-      <div className="max-w-2xl mx-auto p-6 bg-white rounded-[40px] shadow-2xl border-t-[10px] border-primary pb-20">
-        <h2 className="text-3xl font-black text-primary italic mb-6">{user?.name}</h2>
-        <p className="text-xs font-black uppercase tracking-widest text-gray-400">Invoice: {lastInvoiceId}</p>
-        <div className="mt-4 flex flex-col gap-1">
-           <p className="text-sm font-black text-gray-900">Customer: {customerInfo.name || 'Walk-in'}</p>
-           <p className="text-xs font-bold text-gray-500">Mobile: {customerInfo.mobile || 'N/A'}</p>
+      <div className="max-w-2xl mx-auto p-10 bg-white rounded-[40px] shadow-2xl border-t-[15px] border-primary pb-20 print:shadow-none print:p-6 print:border-t-0">
+        <div className="flex justify-between items-start mb-10">
+           <div className="flex items-center gap-6">
+              <div className="w-20 h-20 rounded-3xl bg-gray-50 border-2 border-primary/10 overflow-hidden flex items-center justify-center shrink-0">
+                {user?.profilePic ? <img src={user.profilePic} className="w-full h-full object-cover" /> : <span className="text-2xl font-black text-primary/20">LOGO</span>}
+              </div>
+              <div>
+                 <h2 className="text-3xl font-black text-primary italic leading-none">{user?.name}</h2>
+                 <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 mt-2">{user?.slogan || 'Professional Business'}</p>
+                 <p className="text-[9px] font-bold text-gray-500 mt-1">{user?.email} • {user?.mobile}</p>
+              </div>
+           </div>
+           <div className="text-right">
+              <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Invoice ID</p>
+              <p className="text-lg font-black">{lastInvoiceId}</p>
+           </div>
         </div>
-        <table className="w-full text-left mb-10 mt-8">
-           <thead className="border-b-2"><tr><th className="py-2 text-[10px] font-black uppercase">Product Details</th><th className="py-2 text-right text-[10px] font-black uppercase">Amt</th></tr></thead>
-           <tbody className="divide-y">
+
+        <div className="grid grid-cols-2 gap-8 mb-10 py-6 border-y-2 border-gray-50">
+           <div>
+              <p className="text-[9px] font-black uppercase text-gray-400 tracking-widest mb-1">Customer Details</p>
+              <p className="text-md font-black">{customerInfo.name || 'Walk-in'}</p>
+              <p className="text-xs font-bold text-gray-500">{customerInfo.mobile || 'N/A'}</p>
+           </div>
+           <div className="text-right">
+              <p className="text-[9px] font-black uppercase text-gray-400 tracking-widest mb-1">Billing Date</p>
+              <p className="text-md font-black">{new Date().toLocaleDateString()}</p>
+           </div>
+        </div>
+
+        <table className="w-full text-left mb-10">
+           <thead>
+              <tr className="border-b-4 border-gray-900">
+                <th className="py-3 text-[9px] font-black uppercase">Item Description</th>
+                <th className="py-3 text-[9px] font-black uppercase text-center">Qty</th>
+                <th className="py-3 text-right text-[9px] font-black uppercase">Subtotal</th>
+              </tr>
+           </thead>
+           <tbody className="divide-y-2 divide-gray-50">
               {items.map(i => (
-                 <tr key={i.id} className="text-sm font-bold text-gray-800">
-                    <td className="py-4">
-                       <p className="text-md font-black">{i.productName}</p>
-                       <p className="text-[9px] text-gray-400 uppercase tracking-widest mt-1">{i.color} | {i.size} | {i.qty} PCS x {i.price}</p>
+                 <tr key={i.id} className="text-[12px] font-bold">
+                    <td className="py-5">
+                       <p className="font-black uppercase">{i.productName}</p>
+                       <p className="text-[8px] text-gray-400 uppercase tracking-widest mt-1">{i.color} / {i.size}</p>
                     </td>
-                    <td className="py-4 text-right font-black">{currencySymbol}{(i.qty * i.price).toLocaleString()}</td>
+                    <td className="py-5 text-center">{i.qty}</td>
+                    <td className="py-5 text-right font-black">{currencySymbol}{(i.qty * i.price).toLocaleString()}</td>
                  </tr>
               ))}
            </tbody>
         </table>
-        <div className="border-t-4 border-primary pt-6">
-           <div className="flex justify-between font-black text-xl text-gray-400"><span>Grand Total</span><span>{currencySymbol}{totalAmount.toLocaleString()}</span></div>
-           <div className="flex justify-between font-black text-2xl text-emerald-500 mt-2"><span>Paid Amount</span><span>{currencySymbol}{currentPaid.toLocaleString()}</span></div>
-           {currentDue > 0 && <div className="flex justify-between font-black text-rose-500 mt-2"><span>Balance Due</span><span>{currencySymbol}{currentDue.toLocaleString()}</span></div>}
+
+        <div className="mt-6 space-y-3 bg-gray-50 p-8 rounded-[30px] border-2 border-gray-100">
+           <div className="flex justify-between font-black text-gray-400 text-xs"><span>Sub-Total</span><span>{currencySymbol}{totalAmount.toLocaleString()}</span></div>
+           <div className="flex justify-between font-black text-primary text-xl pt-2 border-t"><span>Paid Amount</span><span>{currencySymbol}{currentPaid.toLocaleString()}</span></div>
+           {currentDue > 0 && <div className="flex justify-between font-black text-rose-500 text-sm"><span>Balance Due</span><span>{currencySymbol}{currentDue.toLocaleString()}</span></div>}
         </div>
-        <div className="mt-10 flex gap-4 no-print">
-           <button onClick={() => window.print()} className="flex-1 py-4 bg-primary text-white font-black rounded-2xl uppercase tracking-widest text-[11px] border-b-4 border-black/20">Print Invoice</button>
-           <button onClick={() => {setShowInvoice(false); setItems([{ id: Math.random().toString(), productName: '', qty: 0, price: 0, color: '', size: '' }]); setPaidAmount(''); setCustomerInfo({name:'', mobile:''});}} className="flex-1 py-4 bg-gray-100 text-gray-500 font-black rounded-2xl uppercase tracking-widest text-[11px] border-b-4 border-gray-300">New Sale</button>
+
+        <div className="mt-20 flex justify-between items-end border-t-2 border-dashed border-gray-200 pt-10">
+           <div className="text-[7px] font-black uppercase tracking-[0.5em] text-gray-300">
+              Generated by Khurasan Premium POS
+           </div>
+           <div className="text-center w-48">
+              <div className="border-b-2 border-gray-900 mb-2"></div>
+              <p className="text-[10px] font-black uppercase tracking-widest">Owner Signature</p>
+           </div>
+        </div>
+
+        <div className="mt-12 flex gap-4 no-print">
+           <button onClick={() => window.print()} className="flex-1 py-5 bg-primary text-white font-black rounded-[20px] uppercase tracking-widest text-[11px] shadow-xl">Print Invoice</button>
+           <button onClick={() => {setShowInvoice(false); setItems([{ id: Math.random().toString(), productName: '', qty: 0, price: 0, color: '', size: '' }]); setPaidAmount(''); setCustomerInfo({name:'', mobile:''});}} className="flex-1 py-5 bg-gray-100 text-gray-500 font-black rounded-[20px] uppercase tracking-widest text-[11px]">New Sale</button>
         </div>
       </div>
     );
