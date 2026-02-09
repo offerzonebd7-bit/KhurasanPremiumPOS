@@ -46,6 +46,53 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
       <Calculator isOpen={isCalcOpen} onClose={() => setIsCalcOpen(false)} />
 
+      {/* Switch Account Modal */}
+      {isSwitchModalOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-gray-900/60 backdrop-blur-md animate-in zoom-in duration-300">
+          <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-[40px] shadow-2xl overflow-hidden border-4 border-primary/10">
+            <div className="p-8 bg-primary text-white flex justify-between items-center">
+              <h2 className="text-xl font-black uppercase tracking-tighter">{t('switchAccount')}</h2>
+              <button onClick={() => setIsSwitchModalOpen(false)} className="p-2 hover:bg-white/20 rounded-xl transition-all">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6" /></svg>
+              </button>
+            </div>
+            <div className="p-8 space-y-4 max-h-[60vh] overflow-y-auto no-scrollbar">
+              {allUsers.map((u) => (
+                <div key={u.id} className="space-y-2">
+                  <button 
+                    onClick={() => { setUser(u, 'ADMIN'); setIsSwitchModalOpen(false); }}
+                    className={`w-full flex items-center p-4 rounded-2xl border-2 transition-all ${user?.id === u.id && role === 'ADMIN' ? 'border-primary bg-primary/5' : 'border-gray-100 dark:border-gray-700 hover:border-primary/50'}`}
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white font-black mr-4 shadow-lg overflow-hidden shrink-0">
+                      {u.profilePic ? <img src={u.profilePic} className="w-full h-full object-cover" /> : u.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="text-left">
+                      <p className="font-black text-xs dark:text-white uppercase">{u.name}</p>
+                      <p className="text-[8px] font-bold text-gray-400 uppercase">Administrator</p>
+                    </div>
+                  </button>
+                  {u.moderators?.map(m => (
+                    <button 
+                      key={m.id}
+                      onClick={() => { setUser(u, 'MODERATOR', m.name); setIsSwitchModalOpen(false); }}
+                      className={`w-full ml-4 flex items-center p-3 rounded-2xl border-2 transition-all ${moderatorName === m.name ? 'border-amber-500 bg-amber-500/5' : 'border-gray-50 dark:border-gray-800 hover:border-amber-500/50'}`}
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-white font-black mr-4 overflow-hidden shrink-0">
+                        {m.profilePic ? <img src={m.profilePic} className="w-full h-full object-cover" /> : m.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="text-left">
+                        <p className="font-black text-[10px] dark:text-white uppercase">{m.name}</p>
+                        <p className="text-[7px] font-bold text-gray-400 uppercase">Moderator</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 transition-transform duration-300 transform bg-white dark:bg-gray-900 border-r dark:border-gray-800 md:translate-x-0 md:static md:inset-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex items-center justify-between h-16 px-6 border-b dark:border-gray-800">
           <span className="text-2xl font-black text-primary tracking-tighter italic">Khurasan</span>
@@ -99,6 +146,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <h1 className="text-lg font-black dark:text-white uppercase tracking-tighter leading-none">{t(view)}</h1>
           </div>
           <div className="flex items-center space-x-2">
+             <button onClick={() => setIsSwitchModalOpen(true)} className="p-2.5 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white rounded-lg transition-all shadow-sm" title={t('switchAccount')}>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+             </button>
              <button onClick={() => setLanguage(language === 'EN' ? 'BN' : 'EN')} className="p-2.5 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg transition-all shadow-sm" title={t('language')}>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
              </button>
