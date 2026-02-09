@@ -44,8 +44,12 @@
         color: white;
       }
       
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
       @media print {
         .no-print { display: none !important; }
+        .no-print-visible { display: block !important; }
         body { background: white !important; color: black !important; font-size: 12pt !important; }
         .print-statement { padding: 0 !important; border: none !important; box-shadow: none !important; }
       }

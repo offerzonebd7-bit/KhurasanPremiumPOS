@@ -70,7 +70,6 @@ export default function App() {
   const [locationName] = useState('Chittagong, Bangladesh');
   const [view, setView] = useState<'dashboard' | 'transactions' | 'reports' | 'settings' | 'profile' | 'products' | 'partners' | 'sale' | 'todaySales'>('dashboard');
 
-  // Inject UI Styles
   useEffect(() => {
     if (user?.uiConfig) {
       const { headlineSize, bodySize, btnScale } = user.uiConfig;
@@ -81,7 +80,6 @@ export default function App() {
     }
   }, [user?.uiConfig]);
 
-  // Persistence Logic
   useEffect(() => {
     localStorage.setItem('mm_lang', language);
   }, [language]);

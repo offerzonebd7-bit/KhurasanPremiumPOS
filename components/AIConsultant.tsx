@@ -29,7 +29,6 @@ const AIConsultant: React.FC = () => {
     setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
     
     try {
-      // Strictly using system-provided API Key as per guidelines
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const model = 'gemini-3-flash-preview';
       let parts: any[] = [];
@@ -62,8 +61,6 @@ const AIConsultant: React.FC = () => {
       });
 
       const aiResponse = response.text || "";
-      
-      // Attempt to extract JSON for automated entries
       let extractedData = null;
       try {
         const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);

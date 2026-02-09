@@ -24,10 +24,9 @@ const Settings: React.FC = () => {
     btnScale: 1
   });
 
-  const [showPin, setShowPin] = useState(false);
-  const [pinVerification, setPinVerification] = useState('');
-  const [modForm, setModForm] = useState({ name: '', email: '', code: '' });
   const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'moderators' | 'appearance' | 'system'>('profile');
+  const [modForm, setModForm] = useState({ name: '', email: '', code: '' });
+  const [securityData, setSecurityData] = useState({ oldPin: '', newPin: '', oldPass: '', newPass: '' });
 
   useEffect(() => {
     if (user?.uiConfig) setUiConfig(user.uiConfig);
@@ -43,15 +42,6 @@ const Settings: React.FC = () => {
            <h2 className="text-2xl font-black uppercase tracking-widest dark:text-white">Moderator Access</h2>
            <p className="text-gray-400 font-bold mt-2 uppercase text-[10px] tracking-widest">You have limited permissions in this view.</p>
         </div>
-        <button 
-          onClick={() => {
-            const pin = prompt(language === 'EN' ? 'Enter Admin Secret PIN:' : 'এডমিন সিক্রেট পিন দিন:');
-            if (pin === user?.secretCode) setUser(user, 'ADMIN');
-          }}
-          className="px-10 py-5 bg-primary text-white font-black rounded-2xl shadow-2xl uppercase tracking-[0.2em] text-[11px] border-b-8 border-black/20"
-        >
-          Switch to Admin
-        </button>
       </div>
     );
   }
@@ -67,14 +57,20 @@ const Settings: React.FC = () => {
     alert('Settings Updated Successfully!');
   };
 
-  const handleUiChange = (key: keyof UIConfig, value: number) => {
-    setUiConfig(prev => ({ ...prev, [key]: value }));
-  };
-
-  const handleColorChange = async (color: string) => {
+  const handleUpdateSecurity = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!user) return;
-    const updatedUser = { ...user, primaryColor: color };
+    if (securityData.newPin && securityData.oldPin !== user.secretCode) return alert('Old PIN is incorrect!');
+    if (securityData.newPass && securityData.oldPass !== user.password) return alert('Old Password is incorrect!');
+    
+    const updatedUser = { 
+      ...user, 
+      secretCode: securityData.newPin || user.secretCode,
+      password: securityData.newPass || user.password
+    };
     await syncUserProfile(updatedUser);
+    alert('Security Settings Updated!');
+    setSecurityData({ oldPin: '', newPin: '', oldPass: '', newPass: '' });
   };
 
   const handleAddModerator = async (e: React.FormEvent) => {
@@ -85,6 +81,36 @@ const Settings: React.FC = () => {
     await syncUserProfile(updatedUser);
     setModForm({ name: '', email: '', code: '' });
   };
+
+  const handleRemoveModerator = async (id: string) => {
+    if (!user || !confirm('Delete this moderator?')) return;
+    const updatedUser = { ...user, moderators: user.moderators.filter(m => m.id !== id) };
+    await syncUserProfile(updatedUser);
+  };
+
+  const handleUiChange = (key: keyof UIConfig, value: number) => {
+    setUiConfig(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleColorChange = async (color: string) => {
+    if (!user) return;
+    const updatedUser = { ...user, primaryColor: color };
+    await syncUserProfile(updatedUser);
+  };
+
+  const handleReset = async () => {
+    const pin = prompt(language === 'EN' ? 'Enter Admin Secret PIN to RESET:' : 'রিসেট করতে এডমিন সিক্রেট পিন দিন:');
+    if (pin === user?.secretCode) {
+      if (confirm('Are you absolutely sure? This will delete all transaction and sales data!')) {
+        await resetApp(pin);
+        alert('System Reset Complete.');
+      }
+    } else {
+      alert('Invalid PIN.');
+    }
+  };
+
+  const inputClass = "px-6 py-4 bg-gray-50 dark:bg-gray-700 border-2 dark:border-gray-600 rounded-2xl outline-none font-bold text-xs focus:border-primary transition-all";
 
   const menuItems = [
     { id: 'profile', label: 'Shop Profile', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
@@ -134,40 +160,118 @@ const Settings: React.FC = () => {
               </div>
               <div className="flex-1 space-y-4 w-full">
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input type="text" value={profileData.name} onChange={e => setProfileData({...profileData, name: e.target.value})} className="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-2 dark:border-gray-600 rounded-2xl outline-none font-bold text-xs" placeholder="Shop Name" />
-                    <input type="text" value={profileData.mobile} onChange={e => setProfileData({...profileData, mobile: e.target.value})} className="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-2 dark:border-gray-600 rounded-2xl outline-none font-bold text-xs" placeholder="Mobile Number" />
+                    <input type="text" value={profileData.name} onChange={e => setProfileData({...profileData, name: e.target.value})} className={inputClass} placeholder="Shop Name" />
+                    <input type="text" value={profileData.mobile} onChange={e => setProfileData({...profileData, mobile: e.target.value})} className={inputClass} placeholder="Mobile Number" />
                  </div>
-                 <input type="email" value={profileData.email} onChange={e => setProfileData({...profileData, email: e.target.value})} className="w-full px-6 py-4 bg-gray-50 dark:bg-gray-700 border-2 dark:border-gray-600 rounded-2xl outline-none font-bold text-xs" placeholder="Business Email" />
-                 <input type="text" value={profileData.slogan} onChange={e => setProfileData({...profileData, slogan: e.target.value})} className="w-full px-6 py-4 bg-gray-50 dark:bg-gray-700 border-2 dark:border-gray-600 rounded-2xl outline-none font-bold text-xs" placeholder="Shop Slogan (e.g. Pure Tradition)" />
-                 <textarea value={profileData.description} onChange={e => setProfileData({...profileData, description: e.target.value})} className="w-full px-6 py-4 bg-gray-50 dark:bg-gray-700 border-2 dark:border-gray-600 rounded-2xl outline-none font-bold text-xs h-24" placeholder="Short Business Description" />
-                 <select value={profileData.currency} onChange={e => setProfileData({...profileData, currency: e.target.value})} className="w-full px-6 py-4 bg-gray-50 dark:bg-gray-700 border-2 dark:border-gray-600 rounded-2xl outline-none font-black text-xs">
+                 <input type="email" value={profileData.email} onChange={e => setProfileData({...profileData, email: e.target.value})} className={`${inputClass} w-full`} placeholder="Business Email" />
+                 <input type="text" value={profileData.slogan} onChange={e => setProfileData({...profileData, slogan: e.target.value})} className={`${inputClass} w-full`} placeholder="Shop Slogan" />
+                 <select value={profileData.currency} onChange={e => setProfileData({...profileData, currency: e.target.value})} className={`${inputClass} w-full font-black`}>
                     {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.name} ({c.code})</option>)}
                  </select>
-                 
-                 <div className="mt-6 p-6 bg-gray-50 dark:bg-gray-900 rounded-[30px] space-y-6">
-                    <p className="text-[10px] font-black uppercase text-primary tracking-widest">Interface Scaling</p>
-                    <div className="space-y-4">
-                       <div>
-                          <label className="flex justify-between text-[9px] font-bold text-gray-400 uppercase mb-2"><span>Headline Size</span><span>{uiConfig.headlineSize}rem</span></label>
-                          <input type="range" min="1.25" max="2.5" step="0.05" value={uiConfig.headlineSize} onChange={e => handleUiChange('headlineSize', parseFloat(e.target.value))} className="w-full accent-primary" />
-                       </div>
-                       <div>
-                          <label className="flex justify-between text-[9px] font-bold text-gray-400 uppercase mb-2"><span>Body Text Size</span><span>{uiConfig.bodySize}rem</span></label>
-                          <input type="range" min="0.7" max="1.1" step="0.02" value={uiConfig.bodySize} onChange={e => handleUiChange('bodySize', parseFloat(e.target.value))} className="w-full accent-primary" />
-                       </div>
-                       <div>
-                          <label className="flex justify-between text-[9px] font-bold text-gray-400 uppercase mb-2"><span>Button Scale</span><span>{uiConfig.btnScale}x</span></label>
-                          <input type="range" min="0.8" max="1.2" step="0.05" value={uiConfig.btnScale} onChange={e => handleUiChange('btnScale', parseFloat(e.target.value))} className="w-full accent-primary" />
-                       </div>
-                    </div>
-                 </div>
-
                  <button onClick={handleUpdateProfile} className="w-full py-4 bg-primary text-white font-black rounded-2xl shadow-xl uppercase tracking-widest text-[10px] border-b-4 border-black/20">{t('save')}</button>
               </div>
             </div>
           </div>
         )}
-        {/* Rest of the Tabs... */}
+
+        {activeTab === 'security' && (
+          <div className="bg-white dark:bg-gray-800 p-8 rounded-[40px] shadow-sm border dark:border-gray-700 animate-in fade-in duration-300">
+             <h3 className="text-xl font-black mb-8 dark:text-white uppercase tracking-tighter">Security & Access</h3>
+             <form onSubmit={handleUpdateSecurity} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                   <div className="space-y-4">
+                      <p className="text-[10px] font-black uppercase text-primary tracking-widest">PIN Management</p>
+                      <input type="text" placeholder="Old PIN" value={securityData.oldPin} onChange={e => setSecurityData({...securityData, oldPin: e.target.value})} className={`${inputClass} w-full`} />
+                      <input type="text" placeholder="New PIN" value={securityData.newPin} onChange={e => setSecurityData({...securityData, newPin: e.target.value})} className={`${inputClass} w-full`} />
+                   </div>
+                   <div className="space-y-4">
+                      <p className="text-[10px] font-black uppercase text-primary tracking-widest">Password Change</p>
+                      <input type="password" placeholder="Old Password" value={securityData.oldPass} onChange={e => setSecurityData({...securityData, oldPass: e.target.value})} className={`${inputClass} w-full`} />
+                      <input type="password" placeholder="New Password" value={securityData.newPass} onChange={e => setSecurityData({...securityData, newPass: e.target.value})} className={`${inputClass} w-full`} />
+                   </div>
+                </div>
+                <button type="submit" className="w-full py-4 bg-primary text-white font-black rounded-2xl shadow-xl uppercase tracking-widest text-[10px] border-b-4 border-black/20">Update Security</button>
+             </form>
+          </div>
+        )}
+
+        {activeTab === 'moderators' && (
+          <div className="bg-white dark:bg-gray-800 p-8 rounded-[40px] shadow-sm border dark:border-gray-700 animate-in fade-in duration-300">
+             <h3 className="text-xl font-black mb-8 dark:text-white uppercase tracking-tighter">Moderator Management</h3>
+             <form onSubmit={handleAddModerator} className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
+                <input type="text" placeholder="Mod Name" value={modForm.name} onChange={e => setModForm({...modForm, name: e.target.value})} className={inputClass} required />
+                <input type="email" placeholder="Mod Email" value={modForm.email} onChange={e => setModForm({...modForm, email: e.target.value})} className={inputClass} required />
+                <input type="text" placeholder="User Code" value={modForm.code} onChange={e => setModForm({...modForm, code: e.target.value})} className={inputClass} required />
+                <button type="submit" className="py-4 bg-primary text-white font-black rounded-2xl shadow-xl uppercase tracking-widest text-[10px] border-b-4 border-black/20">+ Add</button>
+             </form>
+             <div className="space-y-4">
+                {user?.moderators?.map(m => (
+                   <div key={m.id} className="flex items-center justify-between p-5 bg-gray-50 dark:bg-gray-900 rounded-3xl border-2 dark:border-gray-700">
+                      <div><p className="font-black text-xs dark:text-white uppercase">{m.name}</p><p className="text-[9px] font-bold text-gray-400 mt-1 uppercase tracking-widest">{m.email} • {m.code}</p></div>
+                      <button onClick={() => handleRemoveModerator(m.id)} className="p-3 text-rose-500 bg-rose-50 rounded-xl hover:bg-rose-500 hover:text-white transition-all"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                   </div>
+                ))}
+             </div>
+          </div>
+        )}
+
+        {activeTab === 'appearance' && (
+          <div className="bg-white dark:bg-gray-800 p-8 rounded-[40px] shadow-sm border dark:border-gray-700 animate-in fade-in duration-300">
+             <h3 className="text-xl font-black mb-10 dark:text-white uppercase tracking-tighter">Visual Interface</h3>
+             <div className="space-y-10">
+                <div className="grid grid-cols-4 sm:grid-cols-7 gap-3">
+                   {THEME_COLORS.map(c => (
+                      <button 
+                        key={c.color} 
+                        onClick={() => handleColorChange(c.color)}
+                        className={`w-full aspect-square rounded-2xl border-4 transition-all ${user?.primaryColor === c.color ? 'border-primary shadow-xl scale-110' : 'border-transparent hover:scale-105'}`}
+                        style={{ backgroundColor: c.color }}
+                        title={c.name}
+                      />
+                   ))}
+                </div>
+                <div className="space-y-6 p-8 bg-gray-50 dark:bg-gray-900 rounded-[35px]">
+                   <p className="text-[10px] font-black uppercase text-primary tracking-widest">Sizing & Scaling</p>
+                   <div className="space-y-6">
+                      <div>
+                        <label className="flex justify-between text-[9px] font-bold text-gray-400 uppercase mb-2"><span>Headline Size</span><span>{uiConfig.headlineSize}rem</span></label>
+                        <input type="range" min="1.25" max="2.5" step="0.05" value={uiConfig.headlineSize} onChange={e => handleUiChange('headlineSize', parseFloat(e.target.value))} className="w-full accent-primary" />
+                      </div>
+                      <div>
+                        <label className="flex justify-between text-[9px] font-bold text-gray-400 uppercase mb-2"><span>Body Text Size</span><span>{uiConfig.bodySize}rem</span></label>
+                        <input type="range" min="0.7" max="1.1" step="0.02" value={uiConfig.bodySize} onChange={e => handleUiChange('bodySize', parseFloat(e.target.value))} className="w-full accent-primary" />
+                      </div>
+                   </div>
+                </div>
+             </div>
+          </div>
+        )}
+
+        {activeTab === 'system' && (
+          <div className="bg-white dark:bg-gray-800 p-8 rounded-[40px] shadow-sm border dark:border-gray-700 animate-in fade-in duration-300">
+             <h3 className="text-xl font-black mb-8 dark:text-white uppercase tracking-tighter">System Operations</h3>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="p-8 bg-rose-50 dark:bg-rose-950/20 rounded-[35px] border-2 border-rose-100 dark:border-rose-900/30">
+                   <h4 className="font-black text-rose-600 uppercase text-xs mb-4">System Reset</h4>
+                   <p className="text-[9px] font-bold text-rose-400 uppercase tracking-widest leading-relaxed mb-6">Resetting will permanently delete all local transactions, sales records, and inventory data. This cannot be undone.</p>
+                   <button onClick={handleReset} className="w-full py-4 bg-rose-500 text-white font-black rounded-2xl shadow-xl uppercase tracking-widest text-[10px] border-b-4 border-rose-800">Perform Reset</button>
+                </div>
+                <div className="p-8 bg-gray-50 dark:bg-gray-900 rounded-[35px] border-2 dark:border-gray-700">
+                   <h4 className="font-black dark:text-white uppercase text-xs mb-4">Data Management</h4>
+                   <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-relaxed mb-6">Export your local data to a JSON file for backup or transfer between devices.</p>
+                   <button onClick={() => {
+                      const data = { user, txs: localStorage.getItem(`mm_txs_${user?.id}`) };
+                      const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `khurasan_backup_${new Date().toISOString().split('T')[0]}.json`;
+                      a.click();
+                   }} className="w-full py-4 bg-gray-800 text-white font-black rounded-2xl shadow-xl uppercase tracking-widest text-[10px] border-b-4 border-black">Export Backup</button>
+                </div>
+             </div>
+          </div>
+        )}
       </div>
     </div>
   );

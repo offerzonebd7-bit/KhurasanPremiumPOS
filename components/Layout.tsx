@@ -29,51 +29,24 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   ];
 
   const socialLinks = [
-    { 
-      id: 'website', 
-      url: BRAND_INFO.website, 
-      color: 'text-blue-500', 
-      svg: <path fill="currentColor" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10s10-4.477 10-10S17.523 2 12 2m0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8s8 3.589 8 8s-3.589 8-8 8m-5.5-8c0-.552.448-1 1-1h1v-1c0-.552.448-1 1-1s1 .448 1 1v1h1c.552 0 1 .448 1 1s-.448 1-1 1h-1v1c0 .552-.448 1-1 1s-1-.448-1-1v-1h-1c-.552 0-1-.448-1-1" />
-    },
-    { 
-      id: 'facebook', 
-      url: BRAND_INFO.facebook, 
-      color: 'text-indigo-600', 
-      svg: <path fill="currentColor" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89c1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" />
-    },
-    { 
-      id: 'whatsapp', 
-      url: BRAND_INFO.whatsapp, 
-      color: 'text-emerald-500', 
-      svg: <path fill="currentColor" d="M12.011 2C6.5 2 2 6.5 2 12.01c0 1.91.53 3.69 1.45 5.22L2 22l4.95-1.45c1.47.82 3.16 1.28 4.95 1.28c5.51 0 10.01-4.5 10.01-10.01c0-2.67-1.04-5.18-2.93-7.07C17.09 2.85 14.58 1.82 12.01 2zm0 2c2.14 0 4.15.84 5.66 2.34c1.51 1.5 2.34 3.52 2.34 5.67c0 4.41-3.59 8.01-8.01 8.01c-1.57 0-3.08-.46-4.37-1.32l-.31-.21l-2.69.79l.8-2.62l-.23-.37a8.03 8.03 0 0 1-1.21-4.28c0-4.42 3.59-8.01 8.01-8.01z" />
-    },
-    { 
-      id: 'instagram', 
-      url: BRAND_INFO.instagram, 
-      color: 'text-pink-500', 
-      svg: <path fill="currentColor" d="M12 2c-2.717 0-3.056.01-4.122.06c-1.065.05-1.79.217-2.428.465c-.66.255-1.22.597-1.777 1.154c-.557.558-.899 1.118-1.154 1.777c-.247.637-.415 1.363-.465 2.428C2.01 8.944 2 9.283 2 12c0 2.717.01 3.056.06 4.122c.05 1.065.217 1.79.465 2.428c.254.66.596 1.22 1.154 1.777c.558.557 1.117.899 1.777 1.154c.638.247 1.362.415 2.428.465c1.066.05 1.405.06 4.122.06s3.056-.01 4.122-.06c1.065-.05 1.79-.217 2.428-.465c.66-.255 1.22-.597 1.777-1.154c.557-.558.899-1.118 1.154-1.777c.247-.637.415-1.363.465-2.428c.05-1.066.06-1.405.06-4.122s-.01-3.056-.06-4.122c-.05-1.065-.217-1.79-.465-2.428a4.883 4.883 0 0 0-1.154-1.777a4.885 4.885 0 0 0-1.777-1.154c-.637-.248-1.363-.415-2.428-.465C15.056 2.01 14.717 2 12 2zm0 2.163c2.67 0 2.987.01 4.042.059c.976.045 1.505.207 1.858.344c.467.182.8.398 1.15.748c.35.35.566.683.748 1.15c.137.353.3.882.344 1.857c.048 1.055.058 1.371.058 4.042s-.01 2.987-.058 4.042c-.045.975-.207 1.504-.344 1.857c-.182.466-.399.8-.748 1.15c-.35.35-.683.566-1.15.748c-.353.137-.882.3-1.857.344c-1.055.048-1.371.058-4.042.058s-2.987-.01-4.042-.058c-.975-.045-1.504-.207-1.857-.344a3.029 3.029 0 0 1-1.15-.748a3.033 3.033 0 0 1-.748-1.15c-.137-.353-.3-.882-.344-1.857c-.049-1.055-.059-1.371-.059-4.042s.01-2.987.059-4.042c.045-.975.207-1.504.344-1.857c.182-.466.399-.8.748-1.15c.35-.35.683-.566 1.15-.748c.353-.137.882-.3 1.857-.344c1.055-.048 1.371-.059 4.042-.059zM12 6.865A5.135 5.135 0 1 0 17.135 12A5.135 5.135 0 0 0 12 6.865zm0 8.108A2.973 2.973 0 1 1 14.973 12A2.973 2.973 0 0 1 12 14.973zm4.846-9.157a1.2 1.2 0 1 0 1.2 1.2a1.2 1.2 0 0 0-1.2-1.2z" />
-    },
-    { 
-      id: 'email', 
-      url: BRAND_INFO.email, 
-      color: 'text-rose-500', 
-      svg: <path fill="currentColor" d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5l-8-5h16zm0 12H4V8l8 5l8-5v10z" />
-    },
+    { id: 'website', url: BRAND_INFO.website, color: 'text-blue-500', svg: <path fill="currentColor" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10s10-4.477 10-10S17.523 2 12 2m0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8s8 3.589 8 8s-3.589 8-8 8m-5.5-8c0-.552.448-1 1-1h1v-1c0-.552.448-1 1-1s1 .448 1 1v1h1c.552 0 1 .448 1 1s-.448 1-1 1h-1v1c0 .552-.448 1-1 1s-1-.448-1-1v-1h-1c-.552 0-1-.448-1-1" /> },
+    { id: 'facebook', url: BRAND_INFO.facebook, color: 'text-indigo-600', svg: <path fill="currentColor" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89c1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" /> },
+    { id: 'whatsapp', url: BRAND_INFO.whatsapp, color: 'text-emerald-500', svg: <path fill="currentColor" d="M12.01 2C6.48 2 2 6.48 2 12.01c0 1.91.53 3.69 1.45 5.22L2 22l4.95-1.45c1.47.82 3.16 1.28 4.95 1.28c5.51 0 10.01-4.5 10.01-10.01c0-2.67-1.04-5.18-2.93-7.07C17.09 2.85 14.58 1.82 12.01 2zm0 2c2.14 0 4.15.84 5.66 2.34c1.51 1.5 2.34 3.52 2.34 5.67c0 4.41-3.59 8.01-8.01 8.01c-1.57 0-3.08-.46-4.37-1.32l-.31-.21l-2.69.79l.8-2.62l-.23-.37a8.03 8.03 0 0 1-1.21-4.28c0-4.42 3.59-8.01 8.01-8.01z" /> },
+    { id: 'instagram', url: BRAND_INFO.instagram, color: 'text-pink-500', svg: <path fill="currentColor" d="M12 2c-2.717 0-3.056.01-4.122.06c-1.065.05-1.79.217-2.428.465c-.66.255-1.22.597-1.777 1.154c-.557.558-.899 1.118-1.154 1.777c-.247.637-.415 1.363-.465 2.428C2.01 8.944 2 9.283 2 12c0 2.717.01 3.056.06 4.122c.05 1.065.217 1.79.465 2.428c.254.66.596 1.22 1.154 1.777c.558.557 1.117.899 1.777 1.154c.638.247 1.362.415 2.428.465c1.066.05 1.405.06 4.122.06s3.056-.01 4.122-.06c1.065-.05 1.79-.217 2.428-.465c.66-.255 1.22-.597 1.777-1.154c.557-.558.899-1.118 1.154-1.777c.247-.637.415-1.363.465-2.428c.05-1.066.06-1.405.06-4.122s-.01-3.056-.06-4.122c-.05-1.065-.217-1.79-.465-2.428a4.883 4.883 0 0 0-1.154-1.777a4.885 4.885 0 0 0-1.777-1.154c-.637-.248-1.363-.415-2.428-.465C15.056 2.01 14.717 2 12 2zm0 2.163c2.67 0 2.987.01 4.042.059c.976.045 1.505.207 1.858.344c.467.182.8.398 1.15.748c.35.35.566.683.748 1.15c.137.353.3.882.344 1.857c.048 1.055.058 1.371.058 4.042s-.01 2.987-.058 4.042c-.045.975-.207 1.504-.344 1.857c-.182.466-.399.8-.748 1.15c-.35.35-.683.566-1.15.748c-.353.137-.882.3-1.857.344c-1.055.048-1.371.058-4.042.058s-2.987-.01-4.042-.058c-.975-.045-1.504-.207-1.857-.344a3.029 3.029 0 0 1-1.15-.748a3.033 3.033 0 0 1-.748-1.15c-.137-.353-.3-.882-.344-1.857c-.049-1.055-.059-1.371-.059-4.042s.01-2.987.059-4.042c.045-.975.207-1.504.344-1.857c.182-.466.399-.8.748-1.15c.35-.35.683-.566 1.15-.748c.353-.137.882-.3 1.857-.344c1.055-.048 1.371-.059 4.042-.059zM12 6.865A5.135 5.135 0 1 0 17.135 12A5.135 5.135 0 0 0 12 6.865zm0 8.108A2.973 2.973 0 1 1 14.973 12A2.973 2.973 0 0 1 12 14.973zm4.846-9.157a1.2 1.2 0 1 0 1.2 1.2a1.2 1.2 0 0 0-1.2-1.2z" /> },
+    { id: 'email', url: BRAND_INFO.email, color: 'text-rose-500', svg: <path fill="currentColor" d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5l-8-5h16zm0 12H4V8l8 5l8-5v10z" /> },
   ];
 
   const displayName = role === 'MODERATOR' ? moderatorName : (user?.name || 'User');
-  
   const currentProfilePic = role === 'MODERATOR' 
     ? user?.moderators?.find(m => m.name === moderatorName)?.profilePic || ''
     : user?.profilePic || '';
-
   const fallbackInitial = displayName ? displayName.charAt(0).toUpperCase() : '?';
 
   return (
-    <div className="flex h-screen overflow-hidden print:h-auto print:overflow-visible bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
+    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
       <Calculator isOpen={isCalcOpen} onClose={() => setIsCalcOpen(false)} />
 
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 transition-transform duration-300 transform bg-white dark:bg-gray-900 border-r dark:border-gray-800 md:translate-x-0 md:static md:inset-0 print:hidden ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 transition-transform duration-300 transform bg-white dark:bg-gray-900 border-r dark:border-gray-800 md:translate-x-0 md:static md:inset-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex items-center justify-between h-16 px-6 border-b dark:border-gray-800">
           <span className="text-2xl font-black text-primary tracking-tighter italic">Khurasan</span>
           <button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-gray-400">
@@ -117,8 +90,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </div>
       </aside>
 
-      <main className="flex-1 relative overflow-y-auto focus:outline-none transition-colors duration-300 print:overflow-visible flex flex-col h-full">
-        <header className="sticky top-0 z-10 flex items-center justify-between h-16 px-6 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b dark:border-gray-800 md:px-10 print:hidden">
+      <main className="flex-1 relative overflow-y-auto focus:outline-none transition-colors duration-300 flex flex-col h-full">
+        <header className="sticky top-0 z-10 flex items-center justify-between h-16 px-6 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b dark:border-gray-800 md:px-10">
           <div className="flex items-center">
             <button onClick={() => setIsSidebarOpen(true)} className="md:hidden p-3 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-600 dark:text-gray-400 mr-4">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" /></svg>
@@ -126,9 +99,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <h1 className="text-lg font-black dark:text-white uppercase tracking-tighter leading-none">{t(view)}</h1>
           </div>
           <div className="flex items-center space-x-2">
-             <button onClick={() => setIsSwitchModalOpen(true)} className="p-2.5 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white rounded-lg transition-all shadow-sm" title={t('switchAccount')}>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-             </button>
              <button onClick={() => setLanguage(language === 'EN' ? 'BN' : 'EN')} className="p-2.5 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg transition-all shadow-sm" title={t('language')}>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
              </button>
@@ -144,11 +114,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </div>
         </header>
 
-        <div className="p-4 md:p-6 max-w-7xl mx-auto print:p-0 flex-grow">
+        <div className="p-4 md:p-6 max-w-7xl mx-auto flex-grow">
           {children}
         </div>
 
-        <footer className="w-full py-8 text-center border-t dark:border-gray-800 print:hidden bg-white/50 dark:bg-gray-900/50 space-y-4">
+        <footer className="w-full py-8 text-center border-t dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 space-y-4">
            <div className="flex justify-center items-center gap-6">
               {socialLinks.map(link => (
                 <a 
@@ -167,7 +137,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
            </p>
         </footer>
 
-        <button onClick={() => setIsCalcOpen(!isCalcOpen)} className="fixed bottom-16 right-6 z-[90] w-12 h-12 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all print:hidden" style={{ boxShadow: '0 10px 15px -3px var(--primary-color)80' }} title={t('calculator')}>
+        <button onClick={() => setIsCalcOpen(!isCalcOpen)} className="fixed bottom-16 right-6 z-[90] w-12 h-12 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all" style={{ boxShadow: '0 10px 15px -3px var(--primary-color)80' }} title={t('calculator')}>
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
         </button>
       </main>
